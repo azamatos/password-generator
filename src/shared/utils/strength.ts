@@ -1,4 +1,6 @@
-import { zxcvbn } from "zxcvbn-ts";
+import { ZxcvbnFactory } from "@zxcvbn-ts/core";
+import * as zxcvbnCommonPackage from "@zxcvbn-ts/language-common";
+import * as zxcvbnEnPackage from "@zxcvbn-ts/language-en";
 import type { BreachResult } from "./hibp";
 import { ScoreLevel } from "../types";
 
@@ -10,13 +12,10 @@ export interface CheckItem {
 }
 
 export interface StrengthResult {
-  /** 0–100 numeric score */
   score: number;
   level: ScoreLevel;
-  /** e.g. "3 hours", "centuries" */
   crackTime: string;
   checks: CheckItem[];
-  /** zxcvbn warning string, if any */
   warning: string | null;
 }
 
@@ -28,13 +27,17 @@ const SCORE_MAP: Record<ScoreLevel, number> = {
   4: 95,
 };
 
-/**
- * Analyse a password locally using zxcvbn-ts and combine with an optional
- * pre-fetched HIBP breach result.
- *
- * `breach` is optional so callers can show instant local results before the
- * async HIBP fetch completes, then re-call with breach data to update.
- */
+// Instantiate once at module load — plain JS dictionary/graph objects,
+// fully browser-bundle-safe (no fs, no eval, no Node-only imports).
+const zxcvbnInstance = new ZxcvbnFactory({
+  dictionary: {
+    ...zxcvbnCommonPackage.dictionary,
+    ...zxcvbnEnPackage.dictionary,
+  },
+  graphs: zxcvbnCommonPackage.adjacencyGraphs,
+  translations: zxcvbnEnPackage.translations,
+});
+
 export function analysePassword(password: string, breach?: BreachResult): StrengthResult {
   if (!password) {
     return {
@@ -46,18 +49,16 @@ export function analysePassword(password: string, breach?: BreachResult): Streng
     };
   }
 
-  const result = zxcvbn(password);
+  const result = zxcvbnInstance.check(password);
   const zScore = result.score as ScoreLevel;
 
-  // --- length check ---
   const lengthCheck: CheckItem = {
     id: "length",
     label: `${password.length} characters`,
     detail: `min 8`,
-    status: password.length >= 16 ? "pass" : password.length >= 8 ? "pass" : "fail",
+    status: password.length >= 8 ? "pass" : "fail",
   };
 
-  // --- variety check (uppercase + lowercase + symbol or number) ---
   const hasUpper = /[A-Z]/.test(password);
   const hasLower = /[a-z]/.test(password);
   const hasDigit = /[0-9]/.test(password);
@@ -75,8 +76,9 @@ export function analysePassword(password: string, breach?: BreachResult): Streng
     status: goodVariety ? "pass" : "warn",
   };
 
-  // --- dictionary / pattern check ---
-  const dictMatch = result.sequence?.find((s) => s.pattern === "dictionary" && s.token && s.token.length >= 4);
+  const dictMatch = result.sequence?.find(
+    (s): s is typeof s & { token: string } => s.pattern === "dictionary" && !!s.token && s.token.length >= 4,
+  );
   const patternCheck: CheckItem | null = dictMatch
     ? {
         id: "pattern",
@@ -86,12 +88,11 @@ export function analysePassword(password: string, breach?: BreachResult): Streng
       }
     : null;
 
-  // --- breach check ---
   let breachCheck: CheckItem | null = null;
   let breachPenalty = 0;
   if (breach) {
     if (breach.breached) {
-      const lastSeen = new Date().getFullYear(); // HIBP doesn't return year — omit or approximate
+      const lastSeen = new Date().getFullYear();
       breachCheck = {
         id: "breach",
         label: `Found in ${breach.count.toLocaleString()} known breach${breach.count === 1 ? "" : "es"}`,
@@ -109,13 +110,11 @@ export function analysePassword(password: string, breach?: BreachResult): Streng
     }
   }
 
-  // --- final score (0–100) with penalties ---
   let numericScore = SCORE_MAP[zScore];
   if (dictMatch) numericScore = Math.max(0, numericScore - 10);
   if (breachPenalty) numericScore = Math.max(0, numericScore - breachPenalty);
   numericScore = Math.min(100, numericScore);
 
-  // Reclassify level after penalties
   let level: ScoreLevel = zScore;
   if (numericScore <= 10) level = 0;
   else if (numericScore <= 30) level = 1;
@@ -133,7 +132,7 @@ export function analysePassword(password: string, breach?: BreachResult): Streng
   return {
     score: numericScore,
     level,
-    crackTime: result.crack_times_display?.online_no_throttling_10_per_second ?? "unknown",
+    crackTime: result.crackTimes?.onlineNoThrottlingXPerSecond?.display ?? "unknown",
     checks,
     warning: result.feedback?.warning || null,
   };

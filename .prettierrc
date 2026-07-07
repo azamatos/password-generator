@@ -1,19 +1,24 @@
 {
-  "printWidth": 100,
-  "tabWidth": 2,
-  "useTabs": false,
-  "semi": true,
-  "singleQuote": true,
-  "quoteProps": "as-needed",
-  "trailingComma": "all",
-  "bracketSameLine": false,
-  "htmlWhitespaceSensitivity": "ignore",
-  "plugins": ["prettier-plugin-astro"],
+  "printWidth": 120,
   "overrides": [
     {
-      "files": "*.astro",
+      "files": "*.ts,*.js",
       "options": {
-        "parser": "astro"
+        "htmlWhitespaceSensitivity": "strict"
+      }
+    },
+    {
+      "files": "*.css",
+      "options": {
+        "parser": "css",
+        "singleQuote": true,
+        "printWidth": 200
+      }
+    },
+    {
+      "files": "*.md",
+      "options": {
+        "printWidth": 200
       }
     }
   ]

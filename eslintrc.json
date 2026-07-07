@@ -1,0 +1,36 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:prettier/recommended",
+    "plugin:lit/recommended"
+  ],
+  "rules": {
+    "no-console": "warn",
+    "no-var": "error",
+    "prefer-const": "error",
+    "curly": "error",
+    "lit/no-duplicate-template-bindings": "error",
+    "lit/no-template-map": "error",
+    "lit/no-useless-template-literals": "error",
+    "lit/attribute-value-entities": "error",
+    "lit/binding-positions": "error",
+    "lit/no-property-change-update": "error",
+    "lit/no-invalid-html": "error",
+    "eqeqeq": "error",
+    "no-unused-vars": "off"
+  },
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2020
+  },
+  "plugins": [
+    "prettier",
+    "lit"
+  ],
+  "parser": "@typescript-eslint/parser"
+}

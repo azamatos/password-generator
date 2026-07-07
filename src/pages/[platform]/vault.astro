@@ -1,0 +1,18 @@
+---
+import PlatformLayout from "@/layouts/PlatformLayout.astro";
+import { getAllPlatformIds } from "@/shared/utils/platforms";
+
+export function getStaticPaths() {
+  return getAllPlatformIds().map((id) => ({ params: { platform: id } }));
+}
+
+const { platform: platformId } = Astro.params;
+---
+
+<PlatformLayout platformId={platformId}>
+  <pass-platform-vault platformId={platformId}></pass-platform-vault>
+</PlatformLayout>
+
+<script>
+  import "@widgets/platform-vault-page";
+</script>

@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
@@ -11,7 +13,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@components/*": ["src/components/*"]
+      "@components/*": ["src/components/*"],
+      "@icons/*": ["src/icons/*"],
+      "@widgets/*": ["src/widgets/*"],
+      "@shared/*": ["src/shared/*"]
     }
   },
   "include": [".astro/types.d.ts", "src/**/*"]

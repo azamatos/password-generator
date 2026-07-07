@@ -1,0 +1,19 @@
+---
+import MainLayout from "@/layouts/MainLayout.astro";
+
+// Widgets
+import "@/widgets/main-page";
+---
+
+<MainLayout
+  title="Password Generator — azamatos"
+  description="Generate secure passwords for every platform."
+  keywords="hello"
+  ogImagePath="og/main.png"
+>
+  <pass-main-health></pass-main-health>
+</MainLayout>
+
+<script>
+  import "@widgets/main-health-page";
+</script>

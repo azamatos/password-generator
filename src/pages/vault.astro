@@ -1,0 +1,20 @@
+---
+import MainLayout from "@/layouts/MainLayout.astro";
+
+// Widgets
+import "@/widgets/main-page";
+---
+
+<MainLayout
+  title="Password Vault — azamatos"
+  description="Your saved passwords, stored locally. Access and manage your securely generated passwords."
+  keywords="password vault, saved passwords, local password storage"
+  ogImagePath="og/main.png"
+  robots="noindex, nofollow"
+>
+  <pass-main-vault></pass-main-vault>
+</MainLayout>
+
+<script>
+  import "@widgets/main-vault-page";
+</script>

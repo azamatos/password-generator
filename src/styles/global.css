@@ -1,0 +1,106 @@
+@import './fonts.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  margin-block-start: 0px;
+  margin-block-end: 0px;
+  padding-inline-start: 0px;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+:root {
+  --font-sans: 'Inter Tight', -apple-system, system-ui, sans-serif;
+  --font-display: 'Boldonse', 'Fraunces', serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --color-white: #fff;
+  --color-dark: #000;
+  --cream-50: #fdfaf3;
+  --cream-100: #f7f0e1;
+  --cream-150: #f0eee9;
+  --cream-200: #efe5d0;
+  --cream-300: #e3d4b5;
+  --cream-400: #c9b894;
+  --ink-950: #2a0e07;
+  --ink-900: #1a1d2e;
+  --ink-800: #2a2d44;
+  --ink-700: #3d4163;
+  --ink-600: #565a7e;
+  --ink-500: #7a7e9e;
+  --ink-400: #a4a7c1;
+  --ink-300: #c8cad9;
+  --ink-200: #e2e3ec;
+  --ink-100: #f0f0f5;
+  --coral: #ff6b4d;
+  --coral-deep: #c4421f;
+  --coral-soft: #ffd9cd;
+  --coral-tint: #fff0eb;
+  --mint: #2a8e6c;
+  --mint-soft: #d2f1e5;
+  --warn: #c79b2e;
+  --warn-soft: #fff0c4;
+  --danger: #c4421f;
+  --danger-soft: #ffd9cd;
+
+  /* Platform colors */
+  --plat-instagram: #d96f5f;
+  --plat-google: #c79b6e;
+  --plat-apple: #8a8d99;
+  --plat-microsoft: #6a8eb8;
+  --plat-github: #5a4f6e;
+  --plat-amazon: #c79b2e;
+  --plat-twitter: #6a8eb8;
+  --plat-linkedin: #4a6e8a;
+  --plat-spotify: #4e8a6a;
+  --plat-reddit: #d96f5f;
+  --plat-tiktok: #2a2d44;
+  --plat-paypal: #4a6e8a;
+  --plat-facebook: #5b6fa8;
+  --plat-netflix: #c0392b;
+  --plat-shopify: #5a8a4e;
+  --plat-steam: #4a6e8a;
+  --plat-twitch: #7b5ea7;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+  --shadow-xs: 0 1px 2px rgba(26, 29, 46, 0.04);
+  --shadow-sm: 0 4px 12px -2px rgba(26, 29, 46, 0.06), 0 1px 2px rgba(26, 29, 46, 0.04);
+  --shadow-md: 0 12px 24px -8px rgba(26, 29, 46, 0.1), 0 2px 4px rgba(26, 29, 46, 0.04);
+  --shadow-lg: 0 24px 48px -12px rgba(26, 29, 46, 0.18);
+  --shadow-pop: 0 16px 40px -12px rgba(196, 66, 31, 0.25);
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--cream-50);
+  color: var(--ink-950);
+  height: 100vh;
+  min-height: 100vh;
+  overscroll-behavior: none;
+  touch-action: none;
+  position: relative;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+  -webkit-text-size-adjust: 100%;
+}
+
+main {
+  max-width: 1280px;
+  margin: 0px auto;
+}

@@ -1,0 +1,111 @@
+.advanced-params {
+  background: var(--surface-container-lowest);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.advanced-params__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  color: var(--on-surface);
+}
+
+.advanced-params__toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.advanced-params__toggle-icon {
+  color: var(--on-surface-muted);
+  display: flex;
+  align-items: center;
+}
+
+.advanced-params__chevron {
+  font-size: 14px;
+  color: var(--on-surface-muted);
+  transition: transform 0.2s;
+}
+
+.advanced-params__toggle[aria-expanded='true'] .advanced-params__chevron {
+  transform: rotate(180deg);
+}
+
+/* Tonal shift for open content — no border needed */
+.advanced-params__content {
+  padding: 0 20px 20px;
+  background: var(--surface-container-low);
+}
+
+.advanced-params__length-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-top: 16px;
+}
+
+.advanced-params__length-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+  white-space: nowrap;
+}
+
+.advanced-params__slider {
+  flex: 1;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.advanced-params__length-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--on-surface);
+  min-width: 24px;
+  text-align: right;
+}
+
+.char-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.char-type-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-container-lowest);
+  border-radius: var(--r-sm);
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--on-surface);
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.char-type-option:hover {
+  background: var(--surface-container-high);
+}
+
+.char-type-option input[type='checkbox'] {
+  accent-color: var(--tertiary);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  flex-shrink: 0;
+}

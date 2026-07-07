@@ -9,13 +9,7 @@ interface Props {
   robots?: string;
 }
 
-const {
-  title,
-  description,
-  keywords,
-  ogImagePath = "og/main.png",
-  robots = "index, follow",
-} = Astro.props;
+const { title, description, keywords, ogImagePath = "og/main.png", robots = "index, follow" } = Astro.props;
 
 const canonicalURL = Astro.url.href;
 const ogImageURL = `${Astro.site}${ogImagePath}`;
@@ -83,12 +77,9 @@ const jsonLd = {
     <meta name="apple-mobile-web-app-title" content="azamatos" />
     <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- JSON-LD -->
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KP23ZVYVC0"
-    ></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KP23ZVYVC0"></script>
     <script>
       declare global {
         interface Window {

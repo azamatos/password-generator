@@ -7,23 +7,31 @@ const UNIVERSE_AGE_YEARS = 13.8e9;
 
 const plural = (n: number, unit: string) => `${n} ${unit}${n === 1 ? "" : "s"}`;
 
+// Each unit is used until its rounded count would reach the next one, so 59.6 seconds reads "1 minute", not "60 seconds".
+const UNITS: [unit: string, seconds: number, upTo: number][] = [
+  ["second", 1, 60],
+  ["minute", MINUTE, 60],
+  ["hour", HOUR, 24],
+  ["day", DAY, 30],
+  ["month", MONTH, 12],
+  ["year", YEAR, 1000],
+];
+
 /** "3 hours", "about 2 million years": how long a number of seconds feels. */
 export function humanizeSeconds(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds / YEAR > UNIVERSE_AGE_YEARS) return "longer than the universe has existed";
   if (seconds < 1) return "less than a second";
-  if (seconds < MINUTE) return plural(Math.round(seconds), "second");
-  if (seconds < HOUR) return plural(Math.round(seconds / MINUTE), "minute");
-  if (seconds < DAY) return plural(Math.round(seconds / HOUR), "hour");
-  if (seconds < MONTH) return plural(Math.round(seconds / DAY), "day");
-  if (seconds < YEAR) return plural(Math.round(seconds / MONTH), "month");
-  const years = seconds / YEAR;
-  if (years < 1000) return plural(Math.round(years), "year");
-  for (const [size, word] of [
-    [1e9, "billion"],
-    [1e6, "million"],
-    [1e3, "thousand"],
-  ] as const) {
-    if (years >= size) return `about ${Math.round(years / size)} ${word} years`;
+  for (const [unit, size, upTo] of UNITS) {
+    const n = Math.round(seconds / size);
+    if (n < upTo) return plural(n, unit);
   }
-  return plural(Math.round(years), "year");
+  const years = seconds / YEAR;
+  for (const [size, word] of [
+    [1e3, "thousand"],
+    [1e6, "million"],
+  ] as const) {
+    const n = Math.round(years / size);
+    if (n < 1000) return `about ${n} ${word} years`;
+  }
+  return `about ${Math.round(years / 1e9)} billion years`;
 }

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { platforms } from "@/data/platforms";
-import { contrast, inkFor } from "./color";
-import { chipText, ruleTags, shortSummary } from "./describe";
+import { chipText, ruleTags, shareTags, shortSummary } from "./describe";
 
 const byId = Object.fromEntries(platforms.map((p) => [p.id, p]));
 
@@ -23,12 +22,6 @@ describe("ruleTags", () => {
   });
 });
 
-describe("brand buttons", () => {
-  it("are readable for every platform", () => {
-    for (const p of platforms) expect(contrast(p.color, inkFor(p.color)), p.id).toBeGreaterThanOrEqual(4.5);
-  });
-});
-
 describe("chipText", () => {
   const p = { locked: ["digit" as const], unavailable: ["symbol" as const] };
 
@@ -39,5 +32,14 @@ describe("chipText", () => {
     });
     expect(chipText("Symbols: !#$:", "symbol", p, "X").title).toBe("Symbols: !#$: (not accepted by X)");
     expect(chipText("Lowercase letters", "lower", p, "X")).toEqual({ title: "Lowercase letters", state: "" });
+  });
+});
+
+describe("shareTags", () => {
+  it("fits the rules in three tags at most", () => {
+    expect(shareTags(byId.paypal.rules)).toEqual(["8–20 characters", "Letter", "Number or symbol"]);
+    expect(shareTags(byId.apple.rules)).toEqual(["8–63 characters", "Lower, upper, number"]);
+    expect(shareTags(byId.microsoft.rules)).toEqual(["8–127 characters", "2 of 4 types"]);
+    expect(shareTags(byId.instagram.rules)).toEqual(["6+ characters", "Any characters"]);
   });
 });

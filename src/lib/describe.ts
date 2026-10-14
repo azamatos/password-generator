@@ -38,7 +38,7 @@ export function chipText(base: string, c: CharClass, p: Pick<Plan, "locked" | "u
   return { title: note ? `${base} (${note})` : base, state: note ? `, ${note}` : "" };
 }
 
-/** The share image's tags, two at most: length, then what's required, in words. */
+/** The share image's tags, three at most: length, then what's required, in words. */
 export function shareTags(rules: PasswordRules): string[] {
   const length =
     rules.maxLength === null ? `${rules.minLength}+ characters` : `${rules.minLength}–${rules.maxLength} characters`;

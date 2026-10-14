@@ -6,7 +6,6 @@ import { ANY } from "@/data/platforms";
 import type { Platform } from "@/data/types";
 import { inkFor } from "@/lib/color";
 import { ruleTags } from "@/lib/describe";
-import { ANY_SITE } from "@/lib/password";
 
 interface Props {
   /** Undefined for "Any site". */
@@ -14,18 +13,17 @@ interface Props {
 }
 
 const { platform } = Astro.props;
-const brand = platform?.color ?? ANY.color;
-const rules = platform?.rules ?? ANY_SITE;
-const name = platform?.name ?? ANY.name;
+const site = platform ?? ANY;
 // The platform's color on its banner, Copy button, slider and switches; "Any site" keeps the neutral slider.
-const theme = `--brand: ${brand}; --brand-ink: ${inkFor(brand)}; --slider: ${platform ? brand : "var(--on)"}`;
+const theme =
+  `--brand: ${site.color}; --brand-ink: ${inkFor(site.color)}` + (platform ? `; --slider: ${site.color}` : "");
 ---
 
 <div class="wrap app">
-  <Sidebar current={platform?.id ?? ANY.id} />
+  <Sidebar current={site.id} />
   <div class="main" style={theme}>
-    <Banner name={name} tags={ruleTags(rules)} logo={platform?.id} monogram={platform?.short ?? ANY.short} />
-    <Generator rules={rules} site={name} />
+    <Banner name={site.name} tags={ruleTags(site.rules)} logo={platform?.id} />
+    <Generator rules={site.rules} site={site.name} anySite={!platform} />
   </div>
 </div>
 

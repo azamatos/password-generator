@@ -1,4 +1,5 @@
 import { AMBIGUOUS, CHAR_CLASSES, classOf, DEFAULT_SYMBOLS, LETTERS, type CharClass } from "./charsets";
+import { clamp } from "./math";
 import { log2BigInt, randomInt } from "./random";
 
 /** What a site accepts. Every platform preset is one of these, and so is the default generator. */
@@ -32,6 +33,13 @@ export const MAX_LENGTH = 64;
 
 /** The generator's own rules when no platform is selected. */
 export const ANY_SITE: PasswordRules = { minLength: 8, maxLength: null, required: [], symbols: null, spaces: true };
+
+/** Where the generator starts, and what "recommended" sets: 16 characters of every class is about 100 bits. */
+export const DEFAULT_PASSWORD_OPTIONS: PasswordOptions = {
+  length: 16,
+  classes: { lower: true, upper: true, digit: true, symbol: true },
+  avoidAmbiguous: false,
+};
 
 /** What the generator will actually do for these rules and options, after applying the site's limits. */
 export interface Plan {
@@ -97,8 +105,8 @@ export function plan(rules: PasswordRules, options: PasswordOptions): Plan {
   });
 
   const maxLength = Math.min(rules.maxLength ?? MAX_LENGTH, MAX_LENGTH);
-  const minLength = Math.min(Math.max(rules.minLength, enabled.size), maxLength);
-  const length = Math.min(Math.max(Math.round(options.length), minLength), maxLength);
+  const minLength = clamp(rules.minLength, enabled.size, maxLength);
+  const length = clamp(Math.round(options.length), minLength, maxLength);
 
   const enabledPools: Partial<Record<CharClass, string>> = {};
   for (const c of CHAR_CLASSES) if (enabled.has(c)) enabledPools[c] = pools[c];

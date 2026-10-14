@@ -1,16 +1,27 @@
 import type { CharClass } from "@/lib/charsets";
 import { chipText } from "@/lib/describe";
+import { clamp } from "@/lib/math";
 import {
+  DEFAULT_PASSPHRASE_OPTIONS,
   generatePassphrase,
   passphraseBits,
   planPassphrase,
   type PassphraseOptions,
   type Separator,
 } from "@/lib/passphrase";
-import { checkRules, entropyBits, generate, plan, type PasswordOptions, type PasswordRules } from "@/lib/password";
-import { strengthOf } from "@/lib/strength";
+import {
+  checkRules,
+  DEFAULT_PASSWORD_OPTIONS,
+  entropyBits,
+  generate,
+  plan,
+  type PasswordOptions,
+  type PasswordRules,
+} from "@/lib/password";
+import { meterForBits } from "@/lib/strength";
 import { loadWordlist } from "@/lib/wordlist";
 import { find, findAll, mount } from "./dom";
+import { showMeter } from "./meter";
 import { addRecent } from "./recent";
 
 type Mode = "password" | "passphrase";
@@ -18,12 +29,9 @@ type Mode = "password" | "passphrase";
 // Choices stay in memory, so they carry over when you switch platforms (the client router keeps this module alive).
 const prefs: { mode: Mode; password: PasswordOptions; passphrase: PassphraseOptions } = {
   mode: "password",
-  password: { length: 16, classes: { lower: true, upper: true, digit: true, symbol: true }, avoidAmbiguous: false },
-  passphrase: { words: 5, separator: "-", capitalize: false, number: false },
+  password: structuredClone(DEFAULT_PASSWORD_OPTIONS),
+  passphrase: { ...DEFAULT_PASSPHRASE_OPTIONS },
 };
-
-/** What "recommended" under the sliders sets: 16 characters is about 100 bits, 5 words about 65. */
-const RECOMMENDED = { length: 16, words: 5 };
 
 let wordlist: string[] | null = null;
 
@@ -36,9 +44,10 @@ function setRange(input: HTMLInputElement, value: number, min: number, max: numb
 
 function setup(root: HTMLElement) {
   const rules: PasswordRules = JSON.parse(root.dataset.rules ?? "{}");
-  const site = root.dataset.site ?? "Any site";
+  const site = root.dataset.site!;
+  const anySite = "anySite" in root.dataset;
   // "X" rather than "X (Twitter)" in "Meets X's rules".
-  const owner = root.dataset.owner ?? site;
+  const owner = root.dataset.owner!;
   const $ = <T extends Element = HTMLElement>(selector: string) => find<T>(root, selector);
   const $$ = <T extends Element = HTMLElement>(selector: string) => findAll<T>(root, selector);
 
@@ -79,16 +88,14 @@ function setup(root: HTMLElement) {
   function show(value: string, bits: number) {
     current = value;
     output.value = value;
-    const strength = strengthOf(bits);
-    const filled = Math.min(5, Math.max(1, Math.ceil(bits / 20)));
-    bars.dataset.tone = strength.score === 1 ? "weak" : strength.score === 2 ? "fair" : "good";
-    $$<HTMLElement>("[data-bars] i").forEach((bar, i) => bar.classList.toggle("on", i < filled));
-    level.textContent = strength.label;
+    const meter = meterForBits(bits);
+    showMeter(bars, meter);
+    level.textContent = meter.label;
     const size = prefs.mode === "password" ? `${value.length} characters` : `${prefs.passphrase.words} words`;
     details.textContent = `${size} · ${Math.floor(bits)} bits`;
     // On "Any site" there are no site rules to meet, so the line stays hidden.
     const passes = checkRules(rules, value).every((c) => c.pass);
-    meets.hidden = site === "Any site" || !passes;
+    meets.hidden = anySite || !passes;
     meetsText.textContent = `Meets ${owner}'s rules`;
     copy.disabled = regenerate.disabled = false;
   }
@@ -99,7 +106,7 @@ function setup(root: HTMLElement) {
     lengthValue.value = String(p.length);
     $<HTMLElement>("[data-min]").textContent = String(p.minLength);
     $<HTMLElement>("[data-max]").textContent = String(p.maxLength);
-    recommend.disabled = p.length === Math.min(Math.max(RECOMMENDED.length, p.minLength), p.maxLength);
+    recommend.disabled = p.length === clamp(DEFAULT_PASSWORD_OPTIONS.length, p.minLength, p.maxLength);
     for (const input of classInputs) {
       const c = input.dataset.class as CharClass;
       const locked = p.locked.includes(c);
@@ -132,7 +139,7 @@ function setup(root: HTMLElement) {
     wordsValue.value = String(p.words);
     $<HTMLElement>("[data-words-min]").textContent = String(p.minWords);
     $<HTMLElement>("[data-words-max]").textContent = String(p.maxWords);
-    recommendWords.disabled = p.words === Math.min(Math.max(RECOMMENDED.words, p.minWords), p.maxWords);
+    recommendWords.disabled = p.words === clamp(DEFAULT_PASSPHRASE_OPTIONS.words, p.minWords, p.maxWords);
     for (const input of separators) {
       input.disabled = !p.separators.includes(input.value as Separator);
       input.checked = input.value === p.separator;
@@ -207,11 +214,11 @@ function setup(root: HTMLElement) {
     void renderPassphrase();
   });
   recommend.addEventListener("click", () => {
-    prefs.password.length = RECOMMENDED.length;
+    prefs.password.length = DEFAULT_PASSWORD_OPTIONS.length;
     renderPassword();
   });
   recommendWords.addEventListener("click", () => {
-    prefs.passphrase.words = RECOMMENDED.words;
+    prefs.passphrase.words = DEFAULT_PASSPHRASE_OPTIONS.words;
     void renderPassphrase();
   });
   regenerate.addEventListener("click", render);

@@ -1,11 +1,10 @@
 // The /health page: zxcvbn's estimate from a worker, then a leak check once typing pauses.
 import { pwnedCount } from "@/lib/hibp";
+import { meterForScore } from "@/lib/strength";
 import { humanizeSeconds } from "@/lib/time";
 import { find, mount } from "./dom";
+import { showMeter } from "./meter";
 import type { CheckRequest, CheckResponse } from "./zxcvbn.worker";
-
-const LABELS = ["Very weak", "Weak", "Fair", "Strong", "Very strong"] as const;
-const TONES = ["weak", "weak", "fair", "good", "good"] as const;
 
 let worker: Worker | undefined;
 let nextId = 0;
@@ -46,9 +45,10 @@ mount("[data-health]", (root) => {
   let leakTimer = 0;
   let leakAbort: AbortController | undefined;
 
-  const setBars = (score: number) => {
-    bars.dataset.tone = TONES[score];
-    [...bars.children].forEach((bar, i) => bar.classList.toggle("on", i <= score));
+  const showScore = (score: CheckResponse["score"]) => {
+    const meter = meterForScore(score);
+    showMeter(bars, meter);
+    verdict.textContent = meter.label;
   };
 
   toggle.addEventListener("click", () => {
@@ -77,10 +77,7 @@ mount("[data-health]", (root) => {
         : "Not found in known data breaches.";
       leakChip.hidden = !count;
       // A leaked password is guessed first, however random it looks.
-      if (count) {
-        setBars(0);
-        verdict.textContent = LABELS[0];
-      }
+      if (count) showScore(0);
     } catch (error) {
       if ((error as Error).name === "AbortError" || run !== latest) return;
       leak.dataset.state = "error";
@@ -109,8 +106,7 @@ mount("[data-health]", (root) => {
     loading.hidden = true;
     results.hidden = false;
 
-    setBars(r.score);
-    verdict.textContent = LABELS[r.score];
+    showScore(r.score);
     online.textContent = humanizeSeconds(r.guesses / 10);
     // A leaked database with a slow hash such as bcrypt, the case zxcvbn's estimates are made for.
     offline.textContent = humanizeSeconds(r.guesses / 1e4);

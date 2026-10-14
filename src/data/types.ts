@@ -1,6 +1,6 @@
 import type { PasswordRules } from "@/lib/password";
 
-export interface Source {
+interface Source {
   label: string;
   url: string;
 }

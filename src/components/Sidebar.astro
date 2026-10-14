@@ -1,7 +1,6 @@
 ---
 import { ANY, platforms } from "@/data/platforms";
 import { shortSummary } from "@/lib/describe";
-import { ANY_SITE } from "@/lib/password";
 
 interface Props {
   current: string;
@@ -12,7 +11,7 @@ const VISIBLE = 10;
 
 const { current } = Astro.props;
 const items = [
-  { id: ANY.id, href: "/", name: ANY.name, short: ANY.short, summary: shortSummary(ANY_SITE) },
+  { id: ANY.id, href: "/", name: ANY.name, summary: shortSummary(ANY.rules) },
   ...platforms.map((p) => ({
     id: p.id,
     href: `/${p.id}/`,
@@ -42,12 +41,12 @@ const expanded = items.findIndex((item) => item.id === current) >= VISIBLE;
       <li data-name={item.name.toLowerCase()} hidden={i >= VISIBLE && !expanded}>
         <a href={item.href} aria-current={item.id === current ? "page" : undefined}>
           <span class="mono-tile" aria-hidden="true">
-            {item.id === ANY.id ? (
+            {"short" in item ? (
+              item.short
+            ) : (
               <svg class="any" viewBox="0 0 16 16">
                 <path d="M8 2.5v11M3.2 5.25l9.6 5.5M12.8 5.25l-9.6 5.5" />
               </svg>
-            ) : (
-              item.short
             )}
           </span>
           <span class="meta">

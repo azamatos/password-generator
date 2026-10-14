@@ -1,6 +1,6 @@
 import { z } from "astro/zod";
 import { CHAR_CLASSES, DEFAULT_SYMBOLS } from "@/lib/charsets";
-import type { PasswordRules } from "@/lib/password";
+import { ANY_SITE, type PasswordRules } from "@/lib/password";
 import data from "./platforms.json";
 import type { Platform } from "./types";
 
@@ -59,5 +59,5 @@ export function parsePlatforms(input: unknown): Platform[] {
 
 export const platforms = parsePlatforms(data);
 
-/** "Any site": the generator's own defaults, shown first in the list. */
-export const ANY = { id: "any", name: "Any site", short: "✱", color: "#ff6b4d" } as const;
+/** "Any site", at /: the generator's own rules, listed first. It has no logo or monogram. */
+export const ANY = { id: "any", name: "Any site", color: "#ff6b4d", rules: ANY_SITE } as const;

@@ -1,5 +1,6 @@
 import { DEFAULT_SYMBOLS, type CharClass } from "./charsets";
 import type { PasswordRules } from "./password";
+import { clamp } from "./math";
 import { randomInt } from "./random";
 
 /** "" joins words in CamelCase, for sites that accept no separator at all. */
@@ -13,6 +14,14 @@ export interface PassphraseOptions {
   /** Add one random digit to the end of one random word. */
   number: boolean;
 }
+
+/** Where passphrases start, and what "recommended" sets: 5 words is about 65 bits. */
+export const DEFAULT_PASSPHRASE_OPTIONS: PassphraseOptions = {
+  words: 5,
+  separator: "-",
+  capitalize: false,
+  number: false,
+};
 
 export const MIN_WORDS = 4;
 export const MAX_WORDS = 10;
@@ -112,7 +121,7 @@ export function planPassphrase(rules: PasswordRules, options: PassphraseOptions)
     return fail(`its ${rules.maxLength}-character limit is too short for ${MIN_WORDS} words.`);
   }
 
-  const words = Math.min(Math.max(Math.round(options.words), minWords), maxWords);
+  const words = clamp(Math.round(options.words), minWords, maxWords);
   return { ...base, ...settings, separator, words, minWords, maxWords, locked, unsupported: null };
 }
 

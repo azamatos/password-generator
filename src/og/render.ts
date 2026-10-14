@@ -19,11 +19,14 @@ const fonts = [
   { name: "JetBrains Mono", data: file("src/og/fonts/JetBrainsMono-Medium.ttf"), weight: 500 as const },
 ];
 
+// Light-theme colors from src/styles/global.css (satori can't read CSS variables); keep them in step.
 const INK = "#1a1d2e";
 const INK_2 = "#3d4163";
 const CREAM = "#fdfaf3";
 const BORDER = "#e2e3ec";
 const TRACK = "#e2e3ec";
+const FAINT = "#666a87";
+const GOOD_TEXT = "#1f7556";
 const CORAL = "#ff6b4d";
 const TONES = { good: "#2a8e6c", fair: "#c79b2e", weak: "#c4421f" };
 
@@ -109,7 +112,7 @@ function tree(card: ShareCard): Node {
     "div",
     { alignItems: "center", gap: "10px", fontFamily: "JetBrains Mono", fontSize: "26px", color: INK },
     h("span", { color: CORAL }, "➜"),
-    h("span", { color: "#666a87" }, "~"),
+    h("span", { color: FAINT }, "~"),
     h("span", {}, "pass.azamatos"),
     h("div", { width: "13px", height: "26px", borderRadius: "2px", background: INK }),
   );
@@ -215,7 +218,7 @@ function tree(card: ShareCard): Node {
         gap: "12px",
         fontSize: "26px",
         fontWeight: 600,
-        color: sample.alert ? TONES.weak : "#1f7556",
+        color: sample.alert ? TONES.weak : GOOD_TEXT,
       },
       { type: "img", props: { src: sample.alert ? ICONS.alert : ICONS.check, width: 28, height: 28 } },
       sample.status,

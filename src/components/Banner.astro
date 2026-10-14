@@ -2,12 +2,11 @@
 interface Props {
   name: string;
   tags: string[];
-  /** Logo file in public/icons, or none for a monogram. */
+  /** Logo file in public/icons; without one (Any site) the banner shows an asterisk. */
   logo?: string;
-  monogram: string;
 }
 
-const { name, tags, logo, monogram } = Astro.props;
+const { name, tags, logo } = Astro.props;
 ---
 
 <section class="banner" aria-labelledby="site-title">
@@ -23,13 +22,9 @@ const { name, tags, logo, monogram } = Astro.props;
     <img class="art" src={`/icons/${logo}.svg`} alt="" width="72" height="72" />
   ) : (
     <span class="art tile" aria-hidden="true">
-      {monogram === "✱" ? (
-        <svg class="any" viewBox="0 0 16 16">
-          <path d="M8 2.5v11M3.2 5.25l9.6 5.5M12.8 5.25l-9.6 5.5" />
-        </svg>
-      ) : (
-        monogram
-      )}
+      <svg class="any" viewBox="0 0 16 16">
+        <path d="M8 2.5v11M3.2 5.25l9.6 5.5M12.8 5.25l-9.6 5.5" />
+      </svg>
     </span>
   )}
 </section>

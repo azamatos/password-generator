@@ -1,24 +1,23 @@
 ---
 import { DEFAULT_SYMBOLS } from "@/lib/charsets";
-import { MAX_WORDS, MIN_WORDS, SEPARATORS } from "@/lib/passphrase";
+import { DEFAULT_PASSPHRASE_OPTIONS, MAX_WORDS, MIN_WORDS, SEPARATORS } from "@/lib/passphrase";
 import { shortName } from "@/data/types";
 import { chipText } from "@/lib/describe";
-import { plan, type PasswordRules } from "@/lib/password";
+import { DEFAULT_PASSWORD_OPTIONS, plan, type PasswordRules } from "@/lib/password";
 
 interface Props {
   rules: PasswordRules;
   /** "GitHub", or "Any site". */
   site: string;
+  /** No site rules to meet, so "Meets X's rules" never shows. */
+  anySite?: boolean;
 }
 
-const { rules, site } = Astro.props;
+const { rules, site, anySite = false } = Astro.props;
 const owner = shortName(site);
 // Same defaults as the script, so nothing jumps when it takes over.
-const initial = plan(rules, {
-  length: 16,
-  classes: { lower: true, upper: true, digit: true, symbol: true },
-  avoidAmbiguous: false,
-});
+const initial = plan(rules, DEFAULT_PASSWORD_OPTIONS);
+const words = DEFAULT_PASSPHRASE_OPTIONS.words;
 const pct = (value: number, min: number, max: number) => `${max > min ? ((value - min) / (max - min)) * 100 : 0}%`;
 const symbols = rules.symbols || DEFAULT_SYMBOLS;
 const classes = [
@@ -32,7 +31,14 @@ const separatorLabel = (s: string) => (s === " " ? "space" : s === "" ? "none" :
 const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>`;
 ---
 
-<div class="generator" data-generator data-rules={JSON.stringify(rules)} data-site={site} data-owner={owner}>
+<div
+  class="generator"
+  data-generator
+  data-rules={JSON.stringify(rules)}
+  data-site={site}
+  data-owner={owner}
+  data-any-site={anySite ? "" : undefined}
+>
   <section class="card main" aria-label={`${site} password`}>
     <div class="top-row">
       <fieldset class="mode">
@@ -47,7 +53,7 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
         </label>
       </fieldset>
       {/* Rendered up front so nothing shifts: generated passwords always meet the site's rules. */}
-      <p class="meets" data-meets hidden={site === "Any site"}>
+      <p class="meets" data-meets hidden={anySite}>
         <span class="ck" aria-hidden="true">
           <svg viewBox="0 0 16 16">
             <path d="M3.5 8.5l3 3 6-7"></path>
@@ -181,10 +187,18 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
           Words
         </label>
         <output for="words" data-words-value>
-          5
+          {words}
         </output>
       </div>
-      <input id="words" type="range" min={MIN_WORDS} max={MAX_WORDS} value="5" style="--pct: 16.7%" data-words />
+      <input
+        id="words"
+        type="range"
+        min={MIN_WORDS}
+        max={MAX_WORDS}
+        value={words}
+        style={`--pct: ${pct(words, MIN_WORDS, MAX_WORDS)}`}
+        data-words
+      />
       <div class="hints">
         <span data-words-min>{MIN_WORDS}</span>
         <span>min</span>
@@ -199,9 +213,15 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     <fieldset class="card ctl tight">
       <legend class="label">Between words</legend>
       <div class="chips compact">
-        {SEPARATORS.map((s, i) => (
+        {SEPARATORS.map((s) => (
           <label class="chip">
-            <input type="radio" name="separator" value={s} checked={i === 0} data-separator />
+            <input
+              type="radio"
+              name="separator"
+              value={s}
+              checked={s === DEFAULT_PASSPHRASE_OPTIONS.separator}
+              data-separator
+            />
             <span class="chip-face">
               <span aria-hidden="true">{separatorLabel(s)}</span>
               <span class="sr-only">{separatorName[s]}</span>

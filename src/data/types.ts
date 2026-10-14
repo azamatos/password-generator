@@ -5,6 +5,9 @@ export interface Source {
   url: string;
 }
 
+/** "X (Twitter)" → "X", for possessives like "Meets X's rules". */
+export const shortName = (name: string) => name.replace(/\s*\(.*\)$/, "");
+
 export interface Platform {
   /** URL slug, also the logo file name in public/icons. */
   id: string;

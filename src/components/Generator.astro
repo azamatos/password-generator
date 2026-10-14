@@ -1,6 +1,7 @@
 ---
 import { DEFAULT_SYMBOLS } from "@/lib/charsets";
 import { MAX_WORDS, MIN_WORDS, SEPARATORS } from "@/lib/passphrase";
+import { shortName } from "@/data/types";
 import { plan, type PasswordRules } from "@/lib/password";
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 }
 
 const { rules, site } = Astro.props;
+const owner = shortName(site);
 // Same defaults as the script, so nothing jumps when it takes over.
 const initial = plan(rules, {
   length: 16,
@@ -29,7 +31,7 @@ const separatorLabel = (s: string) => (s === " " ? "space" : s === "" ? "none" :
 const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>`;
 ---
 
-<div class="generator" data-generator data-rules={JSON.stringify(rules)} data-site={site}>
+<div class="generator" data-generator data-rules={JSON.stringify(rules)} data-site={site} data-owner={owner}>
   <section class="card main" aria-label={`${site} password`}>
     <div class="top-row">
       <fieldset class="mode">
@@ -40,7 +42,7 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
       {/* Rendered up front so nothing shifts: generated passwords always meet the site's rules. */}
       <p class="meets" data-meets hidden={site === "Any site"}>
         <span class="ck" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7"></path></svg></span>
-        <span data-meets-text>Meets {site}'s rules</span>
+        <span data-meets-text>Meets {owner}'s rules</span>
       </p>
     </div>
 
@@ -107,7 +109,7 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
             return (
               <label
                 class="chip"
-                title={locked ? `${c.title}: required by ${site}` : c.title}
+                title={locked ? `${c.title}: required by ${owner}` : c.title}
                 data-chip={c.name}
                 data-locked={locked ? "" : undefined}
               >
@@ -117,7 +119,7 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
                   <span aria-hidden="true">{c.label}</span>
                   <span class="sr-only">
                     {c.title}
-                    <span data-state>{locked ? `, required by ${site}` : unavailable ? ", not accepted" : ""}</span>
+                    <span data-state>{locked ? `, required by ${owner}` : unavailable ? ", not accepted" : ""}</span>
                   </span>
                 </span>
               </label>

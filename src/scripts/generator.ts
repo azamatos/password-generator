@@ -29,6 +29,8 @@ function setRange(input: HTMLInputElement, value: number, min: number, max: numb
 function setup(root: HTMLElement) {
   const rules: PasswordRules = JSON.parse(root.dataset.rules ?? "{}");
   const site = root.dataset.site ?? "Any site";
+  // "X" rather than "X (Twitter)" in "Meets X's rules".
+  const owner = root.dataset.owner ?? site;
   const $ = <T extends Element>(selector: string) => root.querySelector<T>(selector)!;
   const $$ = <T extends Element>(selector: string) => [...root.querySelectorAll<T>(selector)];
 
@@ -76,7 +78,7 @@ function setup(root: HTMLElement) {
     // On "Any site" there are no site rules to meet, so the line stays hidden.
     const passes = checkRules(rules, value).every((c) => c.pass);
     meets.hidden = site === "Any site" || !passes;
-    meetsText.textContent = `Meets ${site}'s rules`;
+    meetsText.textContent = `Meets ${owner}'s rules`;
     copy.disabled = regenerate.disabled = false;
   }
 
@@ -96,9 +98,9 @@ function setup(root: HTMLElement) {
       const chip = input.closest<HTMLElement>("[data-chip]")!;
       chip.toggleAttribute("data-locked", locked);
       const title = chip.title.split(":")[0];
-      chip.title = locked ? `${title}: required by ${site}` : unavailable ? `${title}: not accepted by ${site}` : title;
+      chip.title = locked ? `${title}: required by ${owner}` : unavailable ? `${title}: not accepted by ${owner}` : title;
       chip.querySelector("[data-state]")!.textContent = locked
-        ? `, required by ${site}`
+        ? `, required by ${owner}`
         : unavailable
           ? ", not accepted"
           : "";
@@ -114,7 +116,7 @@ function setup(root: HTMLElement) {
     result.hidden = panels.passphrase.hidden = blocked;
     meets.hidden = true;
     if (blocked) {
-      unsupportedText.textContent = `Passphrases don't fit ${site}: ${p.unsupported}`;
+      unsupportedText.textContent = `Passphrases don't fit ${owner}: ${p.unsupported}`;
       current = "";
       return;
     }

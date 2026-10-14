@@ -1,5 +1,10 @@
+dist/
+node_modules/
+.astro/
+.lighthouseci/
+
+.env
+.env.*
+.DS_Store
 .vscode/
-node_modules
-dist
-.claude
-.astro
+.claude/

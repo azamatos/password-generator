@@ -1,21 +1,10 @@
 {
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"],
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": true,
-    "skipLibCheck": true,
-    "lib": ["ESNext", "DOM"],
-    "experimentalDecorators": true,
-    "useDefineForClassFields": false,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@components/*": ["src/components/*"],
-      "@icons/*": ["src/icons/*"],
-      "@widgets/*": ["src/widgets/*"],
-      "@shared/*": ["src/shared/*"]
+      "@/*": ["./src/*"]
     }
-  },
-  "include": [".astro/types.d.ts", "src/**/*"]
+  }
 }

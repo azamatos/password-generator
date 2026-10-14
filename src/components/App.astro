@@ -1,0 +1,57 @@
+---
+import Banner from "@/components/Banner.astro";
+import Generator from "@/components/Generator.astro";
+import Sidebar from "@/components/Sidebar.astro";
+import { ANY } from "@/data/platforms";
+import type { Platform } from "@/data/types";
+import { inkFor } from "@/lib/color";
+import { ruleTags } from "@/lib/describe";
+import { ANY_SITE } from "@/lib/password";
+
+interface Props {
+  /** Undefined for "Any site". */
+  platform?: Platform;
+}
+
+const { platform } = Astro.props;
+const brand = platform?.color ?? ANY.color;
+const rules = platform?.rules ?? ANY_SITE;
+const name = platform?.name ?? ANY.name;
+// The platform's color on its banner, Copy button, slider and switches; "Any site" keeps the neutral slider.
+const theme = `--brand: ${brand}; --brand-ink: ${inkFor(brand)}; --slider: ${platform ? brand : "var(--on)"}`;
+---
+
+<div class="wrap app">
+  <Sidebar current={platform?.id ?? ANY.id} />
+  <div class="main" style={theme}>
+    <Banner name={name} tags={ruleTags(rules)} logo={platform?.id} monogram={platform?.short ?? ANY.short} />
+    <Generator rules={rules} site={name} />
+  </div>
+</div>
+
+<style>
+  /* The sidebar stretches to the height of the right column (see Sidebar). */
+  .app {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 24px;
+    align-items: stretch;
+    padding-top: 24px;
+  }
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  @media (max-width: 760px) {
+    .app {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      gap: 14px;
+      padding-top: 14px;
+    }
+  }
+</style>

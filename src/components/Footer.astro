@@ -1,0 +1,26 @@
+---
+import { SITE } from "@/site";
+---
+
+<footer class="wrap">
+  <p>
+    Made in your browser, never sent. By <a href={SITE.author.url}>{SITE.author.name}</a> · <a href={SITE.repo}>Source</a> ·
+    Words: <a href="https://www.eff.org/dice">EFF</a> (CC BY 3.0) · Some rules: <a
+      href="https://github.com/apple/password-manager-resources">Apple</a
+    > (MIT)
+  </p>
+</footer>
+
+<style>
+  footer {
+    padding-top: 20px;
+    padding-bottom: 16px;
+    font-size: 12.5px;
+    color: var(--text-faint);
+  }
+
+  a {
+    color: var(--text-muted);
+    text-underline-offset: 2px;
+  }
+</style>

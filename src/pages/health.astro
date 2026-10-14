@@ -1,0 +1,657 @@
+---
+import Base from "@/layouts/Base.astro";
+---
+
+<Base
+  title="Password Strength Check · pass.azamatos"
+  description="See how long a password would take to guess and whether it has leaked. Checked in your browser; only five characters of its hash are sent, to Have I Been Pwned."
+>
+  <div class="wrap page">
+    <div class="head">
+      <h1>How strong is yours?</h1>
+      <p class="note">Runs in your browser · nothing is stored</p>
+    </div>
+
+    <div class="layout">
+      <section class="card look" aria-labelledby="look-title">
+        <h2 id="look-title" class="label">What we look at</h2>
+        <dl>
+          <div><dt>Length</dt><dd>Longer is stronger</dd></div>
+          <div><dt>Words & names</dt><dd>Dictionaries, l33t speak</dd></div>
+          <div><dt>Patterns</dt><dd>qwerty, 1234, dates, repeats</dd></div>
+          <div><dt>Breaches</dt><dd>Have I Been Pwned · k-anonymity</dd></div>
+        </dl>
+      </section>
+
+      <section class="card checker" aria-labelledby="check-title" data-health>
+        <div class="checker-head">
+          <h2 id="check-title" class="label"><label for="password">Check your password</label></h2>
+          <p class="note">Only 5 characters of a hash are sent</p>
+        </div>
+
+        <div class="input-row">
+          <input
+            id="password"
+            type="password"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            maxlength="256"
+            placeholder="Type or paste a password…"
+            data-input
+          />
+          <button type="button" class="eye-btn" aria-label="Show password" aria-pressed="false" data-toggle>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="lid" d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"></path>
+              <circle class="pupil" cx="12" cy="12" r="2.8"></circle>
+              <path class="slash-gap" d="M4.5 4.5l15 15"></path>
+              <path class="slash" d="M4.5 4.5l15 15"></path>
+            </svg>
+          </button>
+        </div>
+
+        <label class="switch">
+          <input type="checkbox" role="switch" checked data-leak-opt-in />
+          <span class="track" aria-hidden="true"></span>
+          <span>Check if it has leaked</span>
+        </label>
+
+        <p class="status" data-loading hidden>Loading the word lists, once…</p>
+
+        <div class="results" aria-live="polite" data-results hidden>
+          <div class="verdict">
+            <b data-verdict></b>
+            <span class="chip" data-leak-chip hidden>Leaked</span>
+          </div>
+          <div class="bars" aria-hidden="true" data-bars><i></i><i></i><i></i><i></i><i></i></div>
+          <dl class="times">
+            <div><dt>Guessed online, 10 tries a second</dt><dd data-online></dd></div>
+            <div><dt>From a leaked database, 10,000 a second</dt><dd data-offline></dd></div>
+          </dl>
+          <p class="leak" data-leak hidden></p>
+          <p class="warning" data-warning hidden></p>
+          <ul class="suggestions" data-suggestions></ul>
+        </div>
+
+        <noscript><p class="status">Turn on JavaScript to check a password.</p></noscript>
+
+        <div class="actions">
+          <a class="btn brand" href="/">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg>
+            Generate a stronger one
+          </a>
+          <button type="button" class="btn ghost" data-clear>Clear</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import type { CheckRequest, CheckResponse } from "@/scripts/zxcvbn.worker";
+  import { pwnedCount } from "@/lib/hibp";
+  import { humanizeSeconds } from "@/lib/time";
+
+  const LABELS = ["Very weak", "Weak", "Fair", "Strong", "Very strong"] as const;
+  const TONES = ["weak", "weak", "fair", "good", "good"] as const;
+
+  let worker: Worker | undefined;
+  let nextId = 0;
+  const pending = new Map<number, (r: CheckResponse) => void>();
+
+  function analyse(password: string): Promise<CheckResponse> {
+    worker ??= new Worker(new URL("../scripts/zxcvbn.worker.ts", import.meta.url), { type: "module" });
+    worker.onmessage = (e: MessageEvent<CheckResponse>) => {
+      pending.get(e.data.id)?.(e.data);
+      pending.delete(e.data.id);
+    };
+    const id = ++nextId;
+    return new Promise((resolve) => {
+      pending.set(id, resolve);
+      worker!.postMessage({ id, password } satisfies CheckRequest);
+    });
+  }
+
+  function setup(root: HTMLElement) {
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const input = $<HTMLInputElement>("[data-input]");
+    const toggle = $<HTMLButtonElement>("[data-toggle]");
+    const optIn = $<HTMLInputElement>("[data-leak-opt-in]");
+    const loading = $<HTMLElement>("[data-loading]");
+    const results = $<HTMLElement>("[data-results]");
+    const bars = $<HTMLElement>("[data-bars]");
+    const verdict = $<HTMLElement>("[data-verdict]");
+    const leakChip = $<HTMLElement>("[data-leak-chip]");
+    const online = $<HTMLElement>("[data-online]");
+    const offline = $<HTMLElement>("[data-offline]");
+    const leak = $<HTMLElement>("[data-leak]");
+    const warning = $<HTMLElement>("[data-warning]");
+    const suggestions = $<HTMLUListElement>("[data-suggestions]");
+
+    let latest = 0;
+    let leakTimer = 0;
+    let leakAbort: AbortController | undefined;
+
+    const setBars = (score: number) => {
+      bars.dataset.tone = TONES[score];
+      [...bars.children].forEach((bar, i) => bar.classList.toggle("on", i <= score));
+    };
+
+    toggle.addEventListener("click", () => {
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      // Same label, pressed or not: screen readers announce "Show password, toggle button, pressed".
+      toggle.setAttribute("aria-pressed", String(show));
+    });
+
+    async function checkLeak(password: string, run: number) {
+      leakAbort?.abort();
+      if (!optIn.checked || !password) {
+        leak.hidden = leakChip.hidden = true;
+        return;
+      }
+      leakAbort = new AbortController();
+      leak.hidden = false;
+      leak.dataset.state = "checking";
+      leak.textContent = "Checking known breaches…";
+      try {
+        const count = await pwnedCount(password, leakAbort.signal);
+        if (run !== latest) return;
+        leak.dataset.state = count ? "leaked" : "clean";
+        leak.textContent = count
+          ? `Found ${count.toLocaleString("en")} times in data breaches. Don't use it anywhere.`
+          : "Not found in known data breaches.";
+        leakChip.hidden = !count;
+        if (count) setBars(0);
+      } catch (error) {
+        if ((error as Error).name === "AbortError" || run !== latest) return;
+        leak.dataset.state = "error";
+        leak.textContent = "Couldn't reach Have I Been Pwned. Check your connection.";
+      }
+    }
+
+    async function update() {
+      const password = input.value;
+      const run = ++latest;
+      clearTimeout(leakTimer);
+      leakAbort?.abort();
+      if (!password) {
+        results.hidden = loading.hidden = true;
+        return;
+      }
+      // Drop the previous password's leak result straight away; the new one follows after a pause.
+      leak.hidden = !optIn.checked;
+      leakChip.hidden = true;
+      leak.dataset.state = "checking";
+      leak.textContent = "Checking known breaches…";
+
+      if (!worker) loading.hidden = false;
+      const r = await analyse(password);
+      if (run !== latest) return;
+      loading.hidden = true;
+      results.hidden = false;
+
+      setBars(r.score);
+      verdict.textContent = LABELS[r.score];
+      online.textContent = humanizeSeconds(r.guesses / 10);
+      // A leaked database with a slow hash such as bcrypt, the case zxcvbn's estimates are made for.
+      offline.textContent = humanizeSeconds(r.guesses / 1e4);
+      warning.hidden = !r.warning;
+      warning.textContent = r.warning ?? "";
+      suggestions.replaceChildren(
+        ...r.suggestions.map((s) => {
+          const li = document.createElement("li");
+          li.textContent = s;
+          return li;
+        }),
+      );
+      // Wait for a pause in typing, so the leak check doesn't run on every keystroke.
+      leakTimer = window.setTimeout(() => checkLeak(password, run), 600);
+    }
+
+    input.addEventListener("input", () => void update());
+    optIn.addEventListener("change", () => void checkLeak(input.value, latest));
+    $<HTMLButtonElement>("[data-clear]").addEventListener("click", () => {
+      input.value = "";
+      void update();
+      input.focus();
+    });
+  }
+
+  document.addEventListener("astro:page-load", () => {
+    const root = document.querySelector<HTMLElement>("[data-health]");
+    if (root && !root.dataset.ready) {
+      root.dataset.ready = "true";
+      setup(root);
+    }
+  });
+</script>
+
+<style>
+  .page {
+    --brand: var(--coral);
+    --brand-ink: #2a0e07;
+    --slider: var(--on);
+    padding-top: 24px;
+  }
+
+  .head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: 56px;
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  .note {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .look {
+    padding: 22px;
+  }
+
+  .look dl {
+    margin-top: 6px;
+  }
+
+  .look dl div {
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .look dl div:first-child {
+    border-top: 0;
+  }
+
+  .look dt {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .look dd {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+
+  .checker {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 26px 30px;
+  }
+
+  .checker-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  input[type="password"],
+  input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    height: 52px;
+    padding: 0 16px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 18px;
+  }
+
+  input[type="password"]:focus,
+  input[type="text"]:focus {
+    outline: none;
+    border-color: var(--coral);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--coral) 18%, transparent);
+  }
+
+  input::placeholder {
+    color: var(--text-faint);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 46px;
+    padding: 0 20px;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  /* Fixed square, so toggling never changes the row. The slash draws in when the password is hidden. */
+  .eye-btn {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 52px;
+    height: 52px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text-muted);
+    transition:
+      background 200ms ease,
+      color 200ms ease;
+  }
+
+  .eye-btn:hover {
+    background: var(--hover);
+    color: var(--text);
+  }
+
+  .eye-btn[aria-pressed="true"] {
+    background: var(--pill);
+    color: var(--text);
+  }
+
+  .eye-btn svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    overflow: visible;
+  }
+
+  .lid,
+  .pupil,
+  .slash {
+    stroke: currentColor;
+  }
+
+  .pupil {
+    transform-origin: 12px 12px;
+    transform: scale(0.75);
+    transition: transform 280ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+
+  .slash,
+  .slash-gap {
+    stroke-dasharray: 22;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Cuts a gap in the eye where the slash crosses it. */
+  .slash-gap {
+    stroke: var(--surface);
+    stroke-width: 4.5;
+  }
+
+  .eye-btn:hover .slash-gap {
+    stroke: var(--hover);
+  }
+
+  .eye-btn[aria-pressed="true"] .slash,
+  .eye-btn[aria-pressed="true"] .slash-gap {
+    stroke-dashoffset: 22;
+  }
+
+  .eye-btn[aria-pressed="true"] .pupil {
+    transform: scale(1);
+  }
+
+  .ghost {
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .ghost:hover {
+    background: var(--hover);
+  }
+
+  .brand {
+    flex: 1;
+    background: var(--brand);
+    color: var(--brand-ink);
+  }
+
+  .brand:hover {
+    filter: brightness(0.94);
+  }
+
+  .switch {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .switch input {
+    position: absolute;
+    width: 30px;
+    height: 18px;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .track {
+    position: relative;
+    flex: none;
+    width: 30px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--track);
+  }
+
+  .track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease;
+  }
+
+  .switch input:checked + .track {
+    background: var(--on);
+  }
+
+  .switch input:checked + .track::after {
+    transform: translateX(12px);
+  }
+
+  .switch input:focus-visible + .track {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .status {
+    color: var(--text-muted);
+  }
+
+  .results {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .results[hidden],
+  .chip[hidden] {
+    display: none;
+  }
+
+  .verdict {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .verdict b {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .chip {
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: var(--weak-soft);
+    color: var(--weak);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .bars {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+  }
+
+  .bars i {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--track);
+  }
+
+  .bars[data-tone="weak"] i.on {
+    background: var(--weak);
+  }
+
+  .bars[data-tone="fair"] i.on {
+    background: var(--fair);
+  }
+
+  .bars[data-tone="good"] i.on {
+    background: var(--good);
+  }
+
+  .times {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .times div {
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    background: var(--tile);
+  }
+
+  .times dt {
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+
+  .times dd {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .leak,
+  .warning {
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    font-size: 14.5px;
+  }
+
+  .leak[data-state="clean"] {
+    background: var(--good-soft);
+  }
+
+  .leak[data-state="leaked"],
+  .warning {
+    background: var(--weak-soft);
+  }
+
+  .leak[data-state="checking"],
+  .leak[data-state="error"] {
+    background: var(--pill);
+  }
+
+  .suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 20px;
+    font-size: 14.5px;
+    color: var(--text-muted);
+  }
+
+  .suggestions:empty {
+    display: none;
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  @media (max-width: 760px) {
+    .page {
+      padding-top: 14px;
+    }
+
+    .head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+
+    h1 {
+      font-size: 34px;
+    }
+
+    .layout {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .look {
+      order: 2;
+    }
+
+    .checker {
+      padding: 20px;
+    }
+
+    .checker-head {
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .times {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

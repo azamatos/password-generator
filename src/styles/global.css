@@ -1,0 +1,196 @@
+/* Colors from the original design. Dark versions keep the same roles. */
+:root {
+  color-scheme: light dark;
+
+  --bg: #fdfaf3;
+  --surface: #ffffff;
+  --pill: #f0f0f5;
+  --tile: #f7f0e1;
+  --hover: #f0eee9;
+  --border: #e2e3ec;
+  --border-strong: #c8cad9;
+  --text: #1a1d2e;
+  --text-2: #3d4163;
+  --text-muted: #565a7e;
+  --text-faint: #666a87;
+  --on: #1a1d2e;
+  --on-text: #ffffff;
+  --track: #e2e3ec;
+  --good: #2a8e6c;
+  --good-text: #1f7556;
+  --good-soft: #d2f1e5;
+  --fair: #c79b2e;
+  --fair-soft: #fff0c4;
+  --weak: #c4421f;
+  --weak-soft: #ffd9cd;
+  --coral: #ff6b4d;
+  --focus: #2b59c3;
+  --shadow: 0 1px 2px rgba(26, 29, 46, 0.04);
+  --backdrop: rgba(26, 29, 46, 0.2);
+
+  /* Set per platform from its brand color. */
+  --brand: var(--coral);
+  --brand-ink: #2a0e07;
+
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 18px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14130f;
+    --surface: #1d1b16;
+    --pill: #2a2721;
+    --tile: #2f2b23;
+    --hover: #26231d;
+    --border: #34302a;
+    --border-strong: #4d473c;
+    --text: #f3eee2;
+    --text-2: #dcd5c6;
+    --text-muted: #bfb8a8;
+    --text-faint: #a8a190;
+    --on: #f3eee2;
+    --on-text: #1a1d2e;
+    --track: #3a362e;
+    --good: #5fd3a6;
+    --good-text: #6fdcb1;
+    --good-soft: #173a2d;
+    --fair: #e8c25a;
+    --fair-soft: #3a3018;
+    --weak: #ff8a6e;
+    --weak-soft: #3d1f17;
+    --focus: #8fb2ff;
+    --shadow: none;
+    --backdrop: rgba(0, 0, 0, 0.5);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: 0;
+  background: none;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.icon {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mono-tile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--tile);
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 11px;
+  line-height: 1;
+}
+
+@media (max-width: 760px) {
+  .wrap {
+    padding: 0 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

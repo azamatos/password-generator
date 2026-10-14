@@ -1,0 +1,11 @@
+# The old site had a vault and a strength page for every platform.
+/vault /  301
+/vault/ / 301
+/:platform/vault /:platform/ 301
+/:platform/vault/ /:platform/ 301
+/:platform/health /health/ 301
+/:platform/health/ /health/ 301
+
+# Reddit was dropped: it publishes no password rules.
+/reddit /  301
+/reddit/ / 301

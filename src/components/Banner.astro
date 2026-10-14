@@ -1,0 +1,145 @@
+---
+interface Props {
+  name: string;
+  tags: string[];
+  /** Logo file in public/icons, or none for a monogram. */
+  logo?: string;
+  monogram: string;
+}
+
+const { name, tags, logo, monogram } = Astro.props;
+---
+
+<section class="banner" aria-labelledby="site-title">
+  <div class="text">
+    <h1 id="site-title">{name}</h1>
+    <ul class="tags" aria-label={`${name} password rules`}>
+      {tags.map((tag) => <li>{tag}</li>)}
+    </ul>
+  </div>
+  {
+    logo ? (
+      <img class="art" src={`/icons/${logo}.svg`} alt="" width="72" height="72" />
+    ) : (
+      <span class="art tile" aria-hidden="true">
+        {monogram === "✱" ? (
+          <svg class="any" viewBox="0 0 16 16">
+            <path d="M8 2.5v11M3.2 5.25l9.6 5.5M12.8 5.25l-9.6 5.5" />
+          </svg>
+        ) : (
+          monogram
+        )}
+      </span>
+    )
+  }
+</section>
+
+<style>
+  .banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 26px 32px 24px;
+    border-radius: var(--radius-lg);
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 18%, var(--bg)) 0%, var(--bg) 100%);
+  }
+
+  .text {
+    min-width: 0;
+  }
+
+  h1 {
+    margin-bottom: 16px;
+    font-family: var(--font-display);
+    font-size: 44px;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+  }
+
+  .tags li {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 11px;
+    border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--border));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface) 75%, transparent);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+
+  .art {
+    flex: none;
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+  }
+
+  .tile {
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--surface);
+    font-family: var(--font-display);
+    font-size: 30px;
+    color: var(--text-2);
+  }
+
+  .any {
+    width: 28px;
+    height: 28px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+
+  /* Dark logos (GitHub, Apple, X, TikTok) need a light tile on a dark page. */
+  @media (prefers-color-scheme: dark) {
+    img.art {
+      padding: 10px;
+      border-radius: 18px;
+      background: #fff;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .banner {
+      padding: 18px 18px 16px;
+      gap: 12px;
+    }
+
+    h1 {
+      margin-bottom: 12px;
+      font-size: 30px;
+    }
+
+    .tags li {
+      height: 24px;
+      padding: 0 9px;
+      font-size: 10px;
+    }
+
+    .art {
+      width: 48px;
+      height: 48px;
+      font-size: 20px;
+      border-radius: 12px;
+    }
+  }
+</style>

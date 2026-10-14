@@ -1,0 +1,39 @@
+---
+import Base from "@/layouts/Base.astro";
+---
+
+<Base title="Page not found · pass.azamatos" description="This page doesn't exist." noindex>
+  <section class="wrap">
+    <p class="code">404</p>
+    <h1>This page doesn't exist.</h1>
+    <p>The link may be old or mistyped. <a href="/">Go to the generator</a>.</p>
+  </section>
+</Base>
+
+<style>
+  section {
+    padding-top: 64px;
+  }
+
+  .code {
+    font-family: var(--font-mono);
+    color: var(--coral);
+  }
+
+  h1 {
+    margin: 8px 0 12px;
+    font-family: var(--font-display);
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  p {
+    color: var(--text-muted);
+  }
+
+  a {
+    color: var(--text);
+    text-underline-offset: 3px;
+  }
+</style>

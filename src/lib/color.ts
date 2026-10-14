@@ -10,7 +10,7 @@ export function contrast(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-export const DARK_INK = "#2a0e07";
+const DARK_INK = "#2a0e07";
 
 /** White or dark text, whichever reads better on a brand-colored button. */
 export function inkFor(background: string): string {

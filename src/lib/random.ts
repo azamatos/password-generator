@@ -16,10 +16,6 @@ export function randomInt(max: number): number {
   }
 }
 
-export function pick<T>(items: ArrayLike<T>): T {
-  return items[randomInt(items.length)];
-}
-
 /** log2 of a positive BigInt, accurate to double precision. */
 export function log2BigInt(n: bigint): number {
   if (n <= 0n) return 0;

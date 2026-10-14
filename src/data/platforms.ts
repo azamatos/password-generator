@@ -233,7 +233,3 @@ export const platforms: Platform[] = [
 
 /** "Any site": the generator's own defaults, shown first in the list. */
 export const ANY = { id: "any", name: "Any site", short: "✱", color: "#ff6b4d" } as const;
-
-export function platformById(id: string): Platform | undefined {
-  return platforms.find((p) => p.id === id);
-}

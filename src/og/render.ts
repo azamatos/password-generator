@@ -4,8 +4,8 @@ import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
 
 /** Share images are 1200×630, rendered at build time from the same data as the pages. */
-export const WIDTH = 1200;
-export const HEIGHT = 630;
+const WIDTH = 1200;
+const HEIGHT = 630;
 
 // Build-time only, run from the project root. The renderer needs TTF or WOFF, not WOFF2; all three
 // families (Inter Tight, Boldonse, JetBrains Mono) are under the SIL Open Font License.

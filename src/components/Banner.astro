@@ -14,24 +14,24 @@ const { name, tags, logo, monogram } = Astro.props;
   <div class="text">
     <h1 id="site-title">{name}</h1>
     <ul class="tags" aria-label={`${name} password rules`}>
-      {tags.map((tag) => <li>{tag}</li>)}
+      {tags.map((tag) => (
+        <li>{tag}</li>
+      ))}
     </ul>
   </div>
-  {
-    logo ? (
-      <img class="art" src={`/icons/${logo}.svg`} alt="" width="72" height="72" />
-    ) : (
-      <span class="art tile" aria-hidden="true">
-        {monogram === "✱" ? (
-          <svg class="any" viewBox="0 0 16 16">
-            <path d="M8 2.5v11M3.2 5.25l9.6 5.5M12.8 5.25l-9.6 5.5" />
-          </svg>
-        ) : (
-          monogram
-        )}
-      </span>
-    )
-  }
+  {logo ? (
+    <img class="art" src={`/icons/${logo}.svg`} alt="" width="72" height="72" />
+  ) : (
+    <span class="art tile" aria-hidden="true">
+      {monogram === "✱" ? (
+        <svg class="any" viewBox="0 0 16 16">
+          <path d="M8 2.5v11M3.2 5.25l9.6 5.5M12.8 5.25l-9.6 5.5" />
+        </svg>
+      ) : (
+        monogram
+      )}
+    </span>
+  )}
 </section>
 
 <style>

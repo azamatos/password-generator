@@ -36,12 +36,22 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     <div class="top-row">
       <fieldset class="mode">
         <legend class="sr-only">Make a</legend>
-        <label><input type="radio" name="mode" value="password" checked /><span>Password</span></label>
-        <label><input type="radio" name="mode" value="passphrase" /><span>Passphrase</span></label>
+        <label>
+          <input type="radio" name="mode" value="password" checked />
+          <span>Password</span>
+        </label>
+        <label>
+          <input type="radio" name="mode" value="passphrase" />
+          <span>Passphrase</span>
+        </label>
       </fieldset>
       {/* Rendered up front so nothing shifts: generated passwords always meet the site's rules. */}
       <p class="meets" data-meets hidden={site === "Any site"}>
-        <span class="ck" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7"></path></svg></span>
+        <span class="ck" aria-hidden="true">
+          <svg viewBox="0 0 16 16">
+            <path d="M3.5 8.5l3 3 6-7"></path>
+          </svg>
+        </span>
         <span data-meets-text>Meets {owner}'s rules</span>
       </p>
     </div>
@@ -49,19 +59,35 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     <div class="result" data-result>
       <output class="value" aria-label="Generated password" data-output>
         {/* Same width as the password, so the main content paints before the script runs and nothing moves when it does. */}
-        <span class="placeholder" aria-hidden="true">{"•".repeat(initial.length)}</span>
+        <span class="placeholder" aria-hidden="true">
+          {"•".repeat(initial.length)}
+        </span>
         <noscript>Turn on JavaScript to generate a password.</noscript>
       </output>
-      <div class="bars" aria-hidden="true" data-bars><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="bars" aria-hidden="true" data-bars>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+      </div>
       <div class="foot">
-        <p class="strength"><b data-level></b> <span data-details></span></p>
+        <p class="strength">
+          <b data-level></b> <span data-details></span>
+        </p>
         <div class="actions">
           <button class="btn ghost" type="button" data-regenerate disabled>
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 11a8 8 0 1 0-2.3 5.7"></path>
+              <path d="M20 4v7h-7"></path>
+            </svg>
             New
           </button>
           <button class="btn brand" type="button" data-copy disabled>
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V6a2 2 0 0 1 2-2h9"></path></svg>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+              <path d="M5 15V6a2 2 0 0 1 2-2h9"></path>
+            </svg>
             <span data-copy-label>Copy</span>
           </button>
         </div>
@@ -70,7 +96,9 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
 
     <div class="unsupported" data-unsupported hidden>
       <p data-unsupported-text></p>
-      <button class="btn ghost" type="button" data-use-password>Use a password</button>
+      <button class="btn ghost" type="button" data-use-password>
+        Use a password
+      </button>
     </div>
     <p class="sr-only" role="status" data-status></p>
   </section>
@@ -78,8 +106,12 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
   <div class="controls" data-panel="password">
     <section class="card ctl">
       <div class="ctl-head">
-        <label class="label" for="length">Length</label>
-        <output for="length" data-length-value>{initial.length}</output>
+        <label class="label" for="length">
+          Length
+        </label>
+        <output for="length" data-length-value>
+          {initial.length}
+        </output>
       </div>
       <input
         id="length"
@@ -94,7 +126,9 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
         <span data-min>{initial.minLength}</span>
         <span>min</span>
         <span aria-hidden="true">·</span>
-        <button type="button" class="rec" data-recommend>recommended</button>
+        <button type="button" class="rec" data-recommend>
+          recommended
+        </button>
         <span data-max>{initial.maxLength}</span>
       </div>
     </section>
@@ -102,34 +136,34 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     <fieldset class="card ctl">
       <legend class="label">Characters</legend>
       <div class="chips">
-        {
-          classes.map((c) => {
-            const locked = initial.locked.includes(c.name);
-            const unavailable = initial.unavailable.includes(c.name);
-            return (
-              <label
-                class="chip"
-                title={locked ? `${c.title}: required by ${owner}` : c.title}
-                data-chip={c.name}
-                data-locked={locked ? "" : undefined}
-              >
-                <input type="checkbox" checked={!unavailable} disabled={locked || unavailable} data-class={c.name} />
-                <span class="chip-face">
-                  <Fragment set:html={lockIcon} />
-                  <span aria-hidden="true">{c.label}</span>
-                  <span class="sr-only">
-                    {c.title}
-                    <span data-state>{locked ? `, required by ${owner}` : unavailable ? ", not accepted" : ""}</span>
-                  </span>
+        {classes.map((c) => {
+          const locked = initial.locked.includes(c.name);
+          const unavailable = initial.unavailable.includes(c.name);
+          return (
+            <label
+              class="chip"
+              title={locked ? `${c.title}: required by ${owner}` : c.title}
+              data-chip={c.name}
+              data-locked={locked ? "" : undefined}
+            >
+              <input type="checkbox" checked={!unavailable} disabled={locked || unavailable} data-class={c.name} />
+              <span class="chip-face">
+                <Fragment set:html={lockIcon} />
+                <span aria-hidden="true">{c.label}</span>
+                <span class="sr-only">
+                  {c.title}
+                  <span data-state>{locked ? `, required by ${owner}` : unavailable ? ", not accepted" : ""}</span>
                 </span>
-              </label>
-            );
-          })
-        }
+              </span>
+            </label>
+          );
+        })}
         <label class="chip" title="Avoid look-alike characters: 0 O 1 l I">
           <input type="checkbox" data-ambiguous />
           <span class="chip-face">
-            <span aria-hidden="true"><small>no</small> 0O1l</span>
+            <span aria-hidden="true">
+              <small>no</small> 0O1l
+            </span>
             <span class="sr-only">Avoid look-alike characters</span>
           </span>
         </label>
@@ -140,15 +174,21 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
   <div class="controls" data-panel="passphrase" hidden>
     <section class="card ctl">
       <div class="ctl-head">
-        <label class="label" for="words">Words</label>
-        <output for="words" data-words-value>5</output>
+        <label class="label" for="words">
+          Words
+        </label>
+        <output for="words" data-words-value>
+          5
+        </output>
       </div>
       <input id="words" type="range" min={MIN_WORDS} max={MAX_WORDS} value="5" style="--pct: 16.7%" data-words />
       <div class="hints">
         <span data-words-min>{MIN_WORDS}</span>
         <span>min</span>
         <span aria-hidden="true">·</span>
-        <button type="button" class="rec" data-recommend-words>recommended</button>
+        <button type="button" class="rec" data-recommend-words>
+          recommended
+        </button>
         <span data-words-max>{MAX_WORDS}</span>
       </div>
     </section>
@@ -156,28 +196,30 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     <fieldset class="card ctl tight">
       <legend class="label">Between words</legend>
       <div class="chips compact">
-        {
-          SEPARATORS.map((s, i) => (
-            <label class="chip">
-              <input type="radio" name="separator" value={s} checked={i === 0} data-separator />
-              <span class="chip-face">
-                <span aria-hidden="true">{separatorLabel(s)}</span>
-                <span class="sr-only">{separatorName[s]}</span>
-              </span>
-            </label>
-          ))
-        }
+        {SEPARATORS.map((s, i) => (
+          <label class="chip">
+            <input type="radio" name="separator" value={s} checked={i === 0} data-separator />
+            <span class="chip-face">
+              <span aria-hidden="true">{separatorLabel(s)}</span>
+              <span class="sr-only">{separatorName[s]}</span>
+            </span>
+          </label>
+        ))}
       </div>
       <div class="switches">
         <label class="switch">
           <input type="checkbox" role="switch" data-capitalize />
           <span class="track" aria-hidden="true"></span>
-          <span>Capitalize <span class="faint" data-note="capitalize"></span></span>
+          <span>
+            Capitalize <span class="faint" data-note="capitalize"></span>
+          </span>
         </label>
         <label class="switch">
           <input type="checkbox" role="switch" data-number />
           <span class="track" aria-hidden="true"></span>
-          <span>Add a number <span class="faint" data-note="number"></span></span>
+          <span>
+            Add a number <span class="faint" data-note="number"></span>
+          </span>
         </label>
       </div>
     </fieldset>

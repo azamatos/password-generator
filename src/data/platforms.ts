@@ -164,7 +164,10 @@ export const platforms: Platform[] = [
       maxRepeat: 3,
     },
     sources: [
-      { label: "PayPal Help Center", url: "https://www.paypal.com/us/cshelp/article/why-cant-i-view-my-password-help681" },
+      {
+        label: "PayPal Help Center",
+        url: "https://www.paypal.com/us/cshelp/article/why-cant-i-view-my-password-help681",
+      },
       APPLE_RULES,
     ],
     checked: "2026-10",
@@ -200,7 +203,10 @@ export const platforms: Platform[] = [
     color: "#537f48",
     rules: { minLength: 8, maxLength: null, required: [], symbols: null, spaces: true },
     sources: [
-      { label: "Shopify Help Center", url: "https://help.shopify.com/en/manual/your-account/logging-in/reset-password" },
+      {
+        label: "Shopify Help Center",
+        url: "https://help.shopify.com/en/manual/your-account/logging-in/reset-password",
+      },
     ],
     checked: "2026-10",
   },

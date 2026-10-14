@@ -9,36 +9,43 @@ const tabs = [
 <!-- Persisted across page changes, so the tab pill can slide and Recent stays open where it was. -->
 <header class="wrap header" transition:persist="header">
   <a class="logo" href="/">
-    <span class="arrow" aria-hidden="true">➜</span>
-    <span class="tilde" aria-hidden="true">~</span>
-    <span class="name">pass.azamatos<span class="sr-only">, password generator home</span></span>
+    <span class="arrow" aria-hidden="true">
+      ➜
+    </span>
+    <span class="tilde" aria-hidden="true">
+      ~
+    </span>
+    <span class="name">
+      pass.azamatos<span class="sr-only">, password generator home</span>
+    </span>
     <span class="cursor" aria-hidden="true"></span>
   </a>
 
   <nav class="tabs" aria-label="Main" data-tabs>
     <span class="pill" aria-hidden="true" data-pill></span>
-    {
-      tabs.map((tab) => (
-        <a href={tab.href} aria-current={tab.current ? "page" : undefined}>
-          {tab.icon === "key" ? (
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="8" cy="15" r="4" />
-              <path d="M11 12l9-9M17 6l3 3M14 9l2 2" />
-            </svg>
-          ) : (
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M3 12h4l3-7 4 14 3-7h4" />
-            </svg>
-          )}
-          <span class="tab-label">{tab.label}</span>
-        </a>
-      ))
-    }
+    {tabs.map((tab) => (
+      <a href={tab.href} aria-current={tab.current ? "page" : undefined}>
+        {tab.icon === "key" ? (
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="8" cy="15" r="4" />
+            <path d="M11 12l9-9M17 6l3 3M14 9l2 2" />
+          </svg>
+        ) : (
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 12h4l3-7 4 14 3-7h4" />
+          </svg>
+        )}
+        <span class="tab-label">{tab.label}</span>
+      </a>
+    ))}
   </nav>
 
   <div class="right">
     <button class="recent-btn" type="button" aria-haspopup="dialog" data-recent-open>
-      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M12 7v5l3 2"></path>
+      </svg>
       <span class="tab-label">Recent</span>
       <span class="badge" data-recent-count hidden></span>
     </button>
@@ -47,12 +54,18 @@ const tabs = [
   <dialog class="drawer" aria-labelledby="recent-title" data-recent-dialog>
     <div class="drawer-head">
       <h2 id="recent-title">Recent</h2>
-      <button type="button" class="small-btn" data-recent-close>Close</button>
+      <button type="button" class="small-btn" data-recent-close>
+        Close
+      </button>
     </div>
     <p class="note">Passwords you copied. They stay in this tab only and are gone when you reload or close it.</p>
-    <p class="empty" data-recent-empty>Nothing yet. Copy a password and it shows up here.</p>
+    <p class="empty" data-recent-empty>
+      Nothing yet. Copy a password and it shows up here.
+    </p>
     <ol class="recent-list" data-recent-list></ol>
-    <button type="button" class="small-btn clear" data-recent-clear hidden>Clear all</button>
+    <button type="button" class="small-btn clear" data-recent-clear hidden>
+      Clear all
+    </button>
     <p class="sr-only" role="status" data-recent-status></p>
   </dialog>
 </header>

@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import { generatePassphrase, passphraseBits, planPassphrase, WORD_LENGTH, type PassphraseOptions } from "./passphrase";
 import { ANY_SITE, checkRules, type PasswordRules } from "./password";
 
-const wordlist = readFileSync(new URL("./wordlist/eff-large.txt", import.meta.url), "utf8").trim().split("\n");
+const wordlist = readFileSync(new URL("./wordlist/eff-large.txt", import.meta.url), "utf8")
+  .trim()
+  .split("\n");
 
 const DEFAULTS: PassphraseOptions = { words: 5, separator: "-", capitalize: false, number: false };
 

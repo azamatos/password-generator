@@ -6,7 +6,8 @@ import type { ShareCard } from "./render";
 
 /** Short tags for the image, three at most: length, then what's required, in words. */
 function shortTags(rules: PasswordRules): string[] {
-  const length = rules.maxLength === null ? `${rules.minLength}+ characters` : `${rules.minLength}–${rules.maxLength} characters`;
+  const length =
+    rules.maxLength === null ? `${rules.minLength}+ characters` : `${rules.minLength}–${rules.maxLength} characters`;
   if (rules.minClasses) return [length, `${rules.minClasses.count} of 4 types`];
   const WORDS: Record<string, [long: string, short: string]> = {
     upper: ["Uppercase", "upper"],

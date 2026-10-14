@@ -4,7 +4,9 @@ import { checkRules, generate, plan, type PasswordOptions } from "@/lib/password
 import { generatePassphrase, planPassphrase } from "@/lib/passphrase";
 import { readFileSync } from "node:fs";
 
-const wordlist = readFileSync(new URL("../lib/wordlist/eff-large.txt", import.meta.url), "utf8").trim().split("\n");
+const wordlist = readFileSync(new URL("../lib/wordlist/eff-large.txt", import.meta.url), "utf8")
+  .trim()
+  .split("\n");
 
 const settings: PasswordOptions[] = [
   { length: 16, classes: { lower: true, upper: true, digit: true, symbol: true }, avoidAmbiguous: false },
@@ -28,7 +30,10 @@ describe("platforms", () => {
         const pl = plan(p.rules, options);
         for (let i = 0; i < 1000 / settings.length; i++) {
           const password = generate(pl);
-          expect(checkRules(p.rules, password).filter((c) => !c.pass), password).toEqual([]);
+          expect(
+            checkRules(p.rules, password).filter((c) => !c.pass),
+            password,
+          ).toEqual([]);
         }
       }
     });
@@ -43,7 +48,10 @@ describe("platforms", () => {
       }
       for (let i = 0; i < 200; i++) {
         const phrase = generatePassphrase(wordlist, pl);
-        expect(checkRules(p.rules, phrase).filter((c) => !c.pass), phrase).toEqual([]);
+        expect(
+          checkRules(p.rules, phrase).filter((c) => !c.pass),
+          phrase,
+        ).toEqual([]);
         if (!p.rules.spaces) expect(phrase).not.toContain(" ");
       }
     });

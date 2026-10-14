@@ -31,7 +31,13 @@ const TONES = { good: "#2a8e6c", fair: "#c79b2e", weak: "#c4421f" };
 function mix(a: string, b: string, t: number): string {
   const channels = (hex: string) => [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
   const [ca, cb] = [channels(a), channels(b)];
-  return `#${ca.map((c, i) => Math.round(c + (cb[i] - c) * t).toString(16).padStart(2, "0")).join("")}`;
+  return `#${ca
+    .map((c, i) =>
+      Math.round(c + (cb[i] - c) * t)
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")}`;
 }
 
 const svgUri = (svg: string) => `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
@@ -93,7 +99,10 @@ function tree(card: ShareCard): Node {
 
   const art =
     "logo" in card.art
-      ? { type: "img", props: { src: svgUri(file(`public/icons/${card.art.logo}.svg`).toString()), width: 124, height: 124 } }
+      ? {
+          type: "img",
+          props: { src: svgUri(file(`public/icons/${card.art.logo}.svg`).toString()), width: 124, height: 124 },
+        }
       : { type: "img", props: { src: ICONS[card.art.icon](INK_2), width: 104, height: 104 } };
 
   const logo = h(
@@ -173,7 +182,12 @@ function tree(card: ShareCard): Node {
     "div",
     { gap: "8px", marginTop: "16px" },
     ...[0, 1, 2, 3, 4].map((i) =>
-      h("div", { width: "96px", height: "10px", borderRadius: "999px", background: i < sample.bars ? TONES[sample.tone] : TRACK }),
+      h("div", {
+        width: "96px",
+        height: "10px",
+        borderRadius: "999px",
+        background: i < sample.bars ? TONES[sample.tone] : TRACK,
+      }),
     ),
   );
 
@@ -196,7 +210,13 @@ function tree(card: ShareCard): Node {
     ),
     h(
       "div",
-      { alignItems: "center", gap: "12px", fontSize: "26px", fontWeight: 600, color: sample.alert ? TONES.weak : "#1f7556" },
+      {
+        alignItems: "center",
+        gap: "12px",
+        fontSize: "26px",
+        fontWeight: 600,
+        color: sample.alert ? TONES.weak : "#1f7556",
+      },
       { type: "img", props: { src: sample.alert ? ICONS.alert : ICONS.check, width: 28, height: 28 } },
       sample.status,
     ),

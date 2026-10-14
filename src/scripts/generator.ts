@@ -1,5 +1,11 @@
 import type { CharClass } from "@/lib/charsets";
-import { generatePassphrase, passphraseBits, planPassphrase, type PassphraseOptions, type Separator } from "@/lib/passphrase";
+import {
+  generatePassphrase,
+  passphraseBits,
+  planPassphrase,
+  type PassphraseOptions,
+  type Separator,
+} from "@/lib/passphrase";
 import { checkRules, entropyBits, generate, plan, type PasswordOptions, type PasswordRules } from "@/lib/password";
 import { strengthOf } from "@/lib/strength";
 import { loadWordlist } from "@/lib/wordlist";
@@ -48,7 +54,10 @@ function setup(root: HTMLElement) {
   const unsupported = $<HTMLElement>("[data-unsupported]");
   const unsupportedText = $<HTMLElement>("[data-unsupported-text]");
   const modeRadios = $$<HTMLInputElement>('input[name="mode"]');
-  const panels = { password: $<HTMLElement>('[data-panel="password"]'), passphrase: $<HTMLElement>('[data-panel="passphrase"]') };
+  const panels = {
+    password: $<HTMLElement>('[data-panel="password"]'),
+    passphrase: $<HTMLElement>('[data-panel="passphrase"]'),
+  };
 
   const length = $<HTMLInputElement>("[data-length]");
   const lengthValue = $<HTMLOutputElement>("[data-length-value]");
@@ -98,7 +107,11 @@ function setup(root: HTMLElement) {
       const chip = input.closest<HTMLElement>("[data-chip]")!;
       chip.toggleAttribute("data-locked", locked);
       const title = chip.title.split(":")[0];
-      chip.title = locked ? `${title}: required by ${owner}` : unavailable ? `${title}: not accepted by ${owner}` : title;
+      chip.title = locked
+        ? `${title}: required by ${owner}`
+        : unavailable
+          ? `${title}: not accepted by ${owner}`
+          : title;
       chip.querySelector("[data-state]")!.textContent = locked
         ? `, required by ${owner}`
         : unavailable

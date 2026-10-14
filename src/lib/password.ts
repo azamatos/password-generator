@@ -182,7 +182,12 @@ const CLASS_NOUN: Record<CharClass, string> = {
   symbol: "symbol",
 };
 
-const PLURAL: Record<CharClass, string> = { lower: "lowercase", upper: "uppercase", digit: "numbers", symbol: "symbols" };
+const PLURAL: Record<CharClass, string> = {
+  lower: "lowercase",
+  upper: "uppercase",
+  digit: "numbers",
+  symbol: "symbols",
+};
 
 function article(noun: string): string {
   return /^[aeiou]/.test(noun) ? `An ${noun}` : `A ${noun}`;

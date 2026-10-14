@@ -15,18 +15,34 @@ import Base from "@/layouts/Base.astro";
 
     <div class="layout">
       <section class="card look" aria-labelledby="look-title">
-        <h2 id="look-title" class="label">What we look at</h2>
+        <h2 id="look-title" class="label">
+          What we look at
+        </h2>
         <dl>
-          <div><dt>Length</dt><dd>Longer is stronger</dd></div>
-          <div><dt>Words & names</dt><dd>Dictionaries, l33t speak</dd></div>
-          <div><dt>Patterns</dt><dd>qwerty, 1234, dates, repeats</dd></div>
-          <div><dt>Breaches</dt><dd>Have I Been Pwned · k-anonymity</dd></div>
+          <div>
+            <dt>Length</dt>
+            <dd>Longer is stronger</dd>
+          </div>
+          <div>
+            <dt>Words & names</dt>
+            <dd>Dictionaries, l33t speak</dd>
+          </div>
+          <div>
+            <dt>Patterns</dt>
+            <dd>qwerty, 1234, dates, repeats</dd>
+          </div>
+          <div>
+            <dt>Breaches</dt>
+            <dd>Have I Been Pwned · k-anonymity</dd>
+          </div>
         </dl>
       </section>
 
       <section class="card checker" aria-labelledby="check-title" data-health>
         <div class="checker-head">
-          <h2 id="check-title" class="label"><label for="password">Check your password</label></h2>
+          <h2 id="check-title" class="label">
+            <label for="password">Check your password</label>
+          </h2>
           <p class="note">Only 5 characters of a hash are sent</p>
         </div>
 
@@ -57,31 +73,54 @@ import Base from "@/layouts/Base.astro";
           <span>Check if it has leaked</span>
         </label>
 
-        <p class="status" data-loading hidden>Loading the word lists, once…</p>
+        <p class="status" data-loading hidden>
+          Loading the word lists, once…
+        </p>
 
         <div class="results" aria-live="polite" data-results hidden>
           <div class="verdict">
             <b data-verdict></b>
-            <span class="chip" data-leak-chip hidden>Leaked</span>
+            <span class="chip" data-leak-chip hidden>
+              Leaked
+            </span>
           </div>
-          <div class="bars" aria-hidden="true" data-bars><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="bars" aria-hidden="true" data-bars>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+          </div>
           <dl class="times">
-            <div><dt>Guessed online, 10 tries a second</dt><dd data-online></dd></div>
-            <div><dt>From a leaked database, 10,000 a second</dt><dd data-offline></dd></div>
+            <div>
+              <dt>Guessed online, 10 tries a second</dt>
+              <dd data-online></dd>
+            </div>
+            <div>
+              <dt>From a leaked database, 10,000 a second</dt>
+              <dd data-offline></dd>
+            </div>
           </dl>
           <p class="leak" data-leak hidden></p>
           <p class="warning" data-warning hidden></p>
           <ul class="suggestions" data-suggestions></ul>
         </div>
 
-        <noscript><p class="status">Turn on JavaScript to check a password.</p></noscript>
+        <noscript>
+          <p class="status">Turn on JavaScript to check a password.</p>
+        </noscript>
 
         <div class="actions">
           <a class="btn brand" href="/">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 11a8 8 0 1 0-2.3 5.7"></path>
+              <path d="M20 4v7h-7"></path>
+            </svg>
             Generate a stronger one
           </a>
-          <button type="button" class="btn ghost" data-clear>Clear</button>
+          <button type="button" class="btn ghost" data-clear>
+            Clear
+          </button>
         </div>
       </section>
     </div>

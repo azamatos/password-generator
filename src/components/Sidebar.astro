@@ -13,7 +13,13 @@ const VISIBLE = 10;
 const { current } = Astro.props;
 const items = [
   { id: ANY.id, href: "/", name: ANY.name, short: ANY.short, summary: shortSummary(ANY_SITE) },
-  ...platforms.map((p) => ({ id: p.id, href: `/${p.id}/`, name: p.name, short: p.short, summary: shortSummary(p.rules) })),
+  ...platforms.map((p) => ({
+    id: p.id,
+    href: `/${p.id}/`,
+    name: p.name,
+    short: p.short,
+    summary: shortSummary(p.rules),
+  })),
 ];
 const hidden = items.length - VISIBLE;
 // Rendered in its final state so nothing jumps: open when the current platform is one of the hidden ones.
@@ -23,36 +29,39 @@ const expanded = items.findIndex((item) => item.id === current) >= VISIBLE;
 <aside class="side" aria-label="Platforms" transition:persist="sidebar" data-sidebar data-visible={VISIBLE}>
   <p class="label head">Platforms · {platforms.length}</p>
   <label class="search">
-    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"></circle>
+      <path d="M20 20l-3.5-3.5"></path>
+    </svg>
     <span class="sr-only">Search platforms</span>
     <input type="search" placeholder="Search…" autocomplete="off" spellcheck="false" data-search />
     <kbd aria-hidden="true">⌘K</kbd>
   </label>
   <ul class:list={["list", { expanded }]} data-list>
-    {
-      items.map((item, i) => (
-        <li data-name={item.name.toLowerCase()} hidden={i >= VISIBLE && !expanded}>
-          <a href={item.href} aria-current={item.id === current ? "page" : undefined}>
-            <span class="mono-tile" aria-hidden="true">
-              {item.id === ANY.id ? (
-                <svg class="any" viewBox="0 0 16 16">
-                  <path d="M8 2.5v11M3.2 5.25l9.6 5.5M12.8 5.25l-9.6 5.5" />
-                </svg>
-              ) : (
-                item.short
-              )}
-            </span>
-            <span class="meta">
-              <span class="name">{item.name}</span>
-              <span class="summary">{item.summary}</span>
-            </span>
-            <span class="dot" aria-hidden="true" />
-          </a>
-        </li>
-      ))
-    }
+    {items.map((item, i) => (
+      <li data-name={item.name.toLowerCase()} hidden={i >= VISIBLE && !expanded}>
+        <a href={item.href} aria-current={item.id === current ? "page" : undefined}>
+          <span class="mono-tile" aria-hidden="true">
+            {item.id === ANY.id ? (
+              <svg class="any" viewBox="0 0 16 16">
+                <path d="M8 2.5v11M3.2 5.25l9.6 5.5M12.8 5.25l-9.6 5.5" />
+              </svg>
+            ) : (
+              item.short
+            )}
+          </span>
+          <span class="meta">
+            <span class="name">{item.name}</span>
+            <span class="summary">{item.summary}</span>
+          </span>
+          <span class="dot" aria-hidden="true" />
+        </a>
+      </li>
+    ))}
   </ul>
-  <p class="none" data-none hidden>No platform matches. Try Any site.</p>
+  <p class="none" data-none hidden>
+    No platform matches. Try Any site.
+  </p>
   <button type="button" class="more" aria-expanded={expanded ? "true" : "false"} data-more>
     {expanded ? "show less" : `+ ${hidden} more`}
   </button>
@@ -91,7 +100,11 @@ const expanded = items.findIndex((item) => item.id === current) >= VISIBLE;
     });
     search.addEventListener("input", render);
     search.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") items.find((i) => !i.hidden)?.querySelector("a")?.click();
+      if (e.key === "Enter")
+        items
+          .find((i) => !i.hidden)
+          ?.querySelector("a")
+          ?.click();
       else if (e.key === "Escape") {
         search.value = "";
         render();

@@ -126,7 +126,11 @@ describe("generate", () => {
           expect(password).toHaveLength(p.length);
           expect(checkRules(rules, password).filter((c) => !c.pass)).toEqual([]);
           // Every switched-on class appears, and nothing outside the pools does.
-          for (const [c, pool] of Object.entries(p.pools)) expect([...password].some((ch) => pool.includes(ch)), c).toBe(true);
+          for (const [c, pool] of Object.entries(p.pools))
+            expect(
+              [...password].some((ch) => pool.includes(ch)),
+              c,
+            ).toBe(true);
           const allowed = Object.values(p.pools).join("");
           expect([...password].every((ch) => allowed.includes(ch))).toBe(true);
         }
@@ -188,7 +192,9 @@ describe("repeat limit", () => {
   });
 
   it("measures runs", () => {
-    expect([longestRepeat(""), longestRepeat("abc"), longestRepeat("abbbc"), longestRepeat("aabb")]).toEqual([0, 1, 3, 2]);
+    expect([longestRepeat(""), longestRepeat("abc"), longestRepeat("abbbc"), longestRepeat("aabb")]).toEqual([
+      0, 1, 3, 2,
+    ]);
   });
 });
 
@@ -207,7 +213,9 @@ describe("checkRules", () => {
   });
 
   it("fails what is missing", () => {
-    const failed = checkRules(FIXTURES["8-20, all four"], "abcdefgh~").filter((c) => !c.pass).map((c) => c.id);
+    const failed = checkRules(FIXTURES["8-20, all four"], "abcdefgh~")
+      .filter((c) => !c.pass)
+      .map((c) => c.id);
     expect(failed).toEqual(["has-upper", "has-digit", "symbols"]);
   });
 

@@ -685,8 +685,11 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
       padding: 20px;
     }
 
+    /* Its own line on phones, so a wider web font can't push it onto one later. */
     .top-row {
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
     }
 
     .value {
@@ -704,6 +707,12 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
 
     .controls {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* All five character chips fit on one line with either font. */
+    .chips:not(.compact) .chip-face {
+      padding: 0 10px;
+      font-size: 12px;
     }
   }
 </style>

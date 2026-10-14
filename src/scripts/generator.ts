@@ -229,10 +229,14 @@ function setup(root: HTMLElement) {
   render();
 }
 
-document.addEventListener("astro:page-load", () => {
+function init() {
   const root = document.querySelector<HTMLElement>("[data-generator]");
   if (root && !root.dataset.ready) {
     root.dataset.ready = "true";
     setup(root);
   }
-});
+}
+
+// Module scripts run after the page is parsed, so start right away; later pages arrive through the client router.
+init();
+document.addEventListener("astro:page-load", init);

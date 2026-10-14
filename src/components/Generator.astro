@@ -46,6 +46,8 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
 
     <div class="result" data-result>
       <output class="value" aria-label="Generated password" data-output>
+        {/* Same width as the password, so the main content paints before the script runs and nothing moves when it does. */}
+        <span class="placeholder" aria-hidden="true">{"•".repeat(initial.length)}</span>
         <noscript>Turn on JavaScript to generate a password.</noscript>
       </output>
       <div class="bars" aria-hidden="true" data-bars><i></i><i></i><i></i><i></i><i></i></div>
@@ -293,6 +295,10 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     letter-spacing: 0.02em;
     overflow-wrap: anywhere;
     color: var(--text);
+  }
+
+  .placeholder {
+    color: var(--track);
   }
 
   .bars {

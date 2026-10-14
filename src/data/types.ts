@@ -17,6 +17,8 @@ export interface Platform {
   /** Brand color for the banner, buttons and slider. */
   color: string;
   rules: PasswordRules;
+  /** Why a rule is what it is, when the sources don't make it obvious. Not shown on the site. */
+  notes?: string;
   /** Where the rules come from. Not shown on the site; kept so they can be re-checked. */
   sources: Source[];
   /** When the rules were last checked against the sources, as YYYY-MM. */

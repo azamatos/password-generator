@@ -10,6 +10,7 @@ import {
 import { checkRules, entropyBits, generate, plan, type PasswordOptions, type PasswordRules } from "@/lib/password";
 import { strengthOf } from "@/lib/strength";
 import { loadWordlist } from "@/lib/wordlist";
+import { find, findAll, mount } from "./dom";
 import { addRecent } from "./recent";
 
 type Mode = "password" | "passphrase";
@@ -38,8 +39,8 @@ function setup(root: HTMLElement) {
   const site = root.dataset.site ?? "Any site";
   // "X" rather than "X (Twitter)" in "Meets X's rules".
   const owner = root.dataset.owner ?? site;
-  const $ = <T extends Element>(selector: string) => root.querySelector<T>(selector)!;
-  const $$ = <T extends Element>(selector: string) => [...root.querySelectorAll<T>(selector)];
+  const $ = <T extends Element = HTMLElement>(selector: string) => find<T>(root, selector);
+  const $$ = <T extends Element = HTMLElement>(selector: string) => findAll<T>(root, selector);
 
   const output = $<HTMLOutputElement>("[data-output]");
   const bars = $<HTMLElement>("[data-bars]");
@@ -237,14 +238,4 @@ function setup(root: HTMLElement) {
   render();
 }
 
-function init() {
-  const root = document.querySelector<HTMLElement>("[data-generator]");
-  if (root && !root.dataset.ready) {
-    root.dataset.ready = "true";
-    setup(root);
-  }
-}
-
-// Module scripts run after the page is parsed, so start right away; later pages arrive through the client router.
-init();
-document.addEventListener("astro:page-load", init);
+mount("[data-generator]", setup);

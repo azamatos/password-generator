@@ -1,4 +1,5 @@
 import type { CharClass } from "@/lib/charsets";
+import { chipText } from "@/lib/describe";
 import {
   generatePassphrase,
   passphraseBits,
@@ -106,17 +107,9 @@ function setup(root: HTMLElement) {
       input.disabled = locked || unavailable;
       const chip = input.closest<HTMLElement>("[data-chip]")!;
       chip.toggleAttribute("data-locked", locked);
-      const title = chip.title.split(":")[0];
-      chip.title = locked
-        ? `${title}: required by ${owner}`
-        : unavailable
-          ? `${title}: not accepted by ${owner}`
-          : title;
-      chip.querySelector("[data-state]")!.textContent = locked
-        ? `, required by ${owner}`
-        : unavailable
-          ? ", not accepted"
-          : "";
+      const text = chipText(chip.dataset.title!, c, p, owner);
+      chip.title = text.title;
+      chip.querySelector("[data-state]")!.textContent = text.state;
     }
     ambiguous.checked = prefs.password.avoidAmbiguous;
     show(generate(p), entropyBits(p));

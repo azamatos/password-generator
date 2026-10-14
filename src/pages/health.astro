@@ -202,7 +202,11 @@ import Base from "@/layouts/Base.astro";
           ? `Found ${count.toLocaleString("en")} times in data breaches. Don't use it anywhere.`
           : "Not found in known data breaches.";
         leakChip.hidden = !count;
-        if (count) setBars(0);
+        // A leaked password is guessed first, however random it looks.
+        if (count) {
+          setBars(0);
+          verdict.textContent = LABELS[0];
+        }
       } catch (error) {
         if ((error as Error).name === "AbortError" || run !== latest) return;
         leak.dataset.state = "error";

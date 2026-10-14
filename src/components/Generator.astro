@@ -2,6 +2,7 @@
 import { DEFAULT_SYMBOLS } from "@/lib/charsets";
 import { MAX_WORDS, MIN_WORDS, SEPARATORS } from "@/lib/passphrase";
 import { shortName } from "@/data/types";
+import { chipText } from "@/lib/describe";
 import { plan, type PasswordRules } from "@/lib/password";
 
 interface Props {
@@ -139,10 +140,12 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
         {classes.map((c) => {
           const locked = initial.locked.includes(c.name);
           const unavailable = initial.unavailable.includes(c.name);
+          const text = chipText(c.title, c.name, initial, owner);
           return (
             <label
               class="chip"
-              title={locked ? `${c.title}: required by ${owner}` : c.title}
+              title={text.title}
+              data-title={c.title}
               data-chip={c.name}
               data-locked={locked ? "" : undefined}
             >
@@ -152,7 +155,7 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
                 <span aria-hidden="true">{c.label}</span>
                 <span class="sr-only">
                   {c.title}
-                  <span data-state>{locked ? `, required by ${owner}` : unavailable ? ", not accepted" : ""}</span>
+                  <span data-state>{text.state}</span>
                 </span>
               </span>
             </label>

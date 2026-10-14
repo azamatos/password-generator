@@ -1,5 +1,5 @@
 import type { CharClass } from "./charsets";
-import { checkRules, type PasswordRules } from "./password";
+import { checkRules, type PasswordRules, type Plan } from "./password";
 
 const MARK: Record<CharClass, string> = { upper: "A", lower: "a", digit: "9", symbol: "!" };
 const ORDER: CharClass[] = ["upper", "lower", "digit", "symbol"];
@@ -23,4 +23,17 @@ export function ruleTags(rules: PasswordRules): string[] {
   const tags = checkRules(rules, "").map((c) => c.label);
   const anyCharacters = rules.required.length === 0 && !rules.minClasses && rules.symbols === null;
   return anyCharacters ? [...tags, "Any characters"] : tags;
+}
+
+/**
+ * Tooltip and screen-reader suffix for a character type's chip, saying why it can't be switched:
+ * "Numbers (required by GitHub)", "Symbols: !@# (not accepted by Example)".
+ */
+export function chipText(base: string, c: CharClass, p: Pick<Plan, "locked" | "unavailable">, owner: string) {
+  const note = p.locked.includes(c)
+    ? `required by ${owner}`
+    : p.unavailable.includes(c)
+      ? `not accepted by ${owner}`
+      : "";
+  return { title: note ? `${base} (${note})` : base, state: note ? `, ${note}` : "" };
 }

@@ -1,8 +1,12 @@
 ---
-import { DEFAULT_SYMBOLS } from "@/lib/charsets";
-import { DEFAULT_PASSPHRASE_OPTIONS, MAX_WORDS, MIN_WORDS, SEPARATORS } from "@/lib/passphrase";
+import Button from "@/components/ui/Button.astro";
+import RangeField from "@/components/ui/RangeField.astro";
+import StrengthBars from "@/components/ui/StrengthBars.astro";
+import Switch from "@/components/ui/Switch.astro";
 import { shortName } from "@/data/types";
+import { DEFAULT_SYMBOLS } from "@/lib/charsets";
 import { chipText } from "@/lib/describe";
+import { DEFAULT_PASSPHRASE_OPTIONS, MAX_WORDS, MIN_WORDS, SEPARATORS } from "@/lib/passphrase";
 import { DEFAULT_PASSWORD_OPTIONS, plan, type PasswordRules } from "@/lib/password";
 
 interface Props {
@@ -15,10 +19,8 @@ interface Props {
 
 const { rules, site, anySite = false } = Astro.props;
 const owner = shortName(site);
-// Same defaults as the script, so nothing jumps when it takes over.
+// Rendered with the script's starting options, so nothing jumps when it takes over.
 const initial = plan(rules, DEFAULT_PASSWORD_OPTIONS);
-const words = DEFAULT_PASSPHRASE_OPTIONS.words;
-const pct = (value: number, min: number, max: number) => `${max > min ? ((value - min) / (max - min)) * 100 : 0}%`;
 const symbols = rules.symbols || DEFAULT_SYMBOLS;
 const classes = [
   { name: "lower", label: "a–z", title: "Lowercase letters" },
@@ -28,9 +30,9 @@ const classes = [
 ] as const;
 const separatorName: Record<string, string> = { "-": "Dash", ".": "Dot", _: "Underscore", " ": "Space", "": "None" };
 const separatorLabel = (s: string) => (s === " " ? "space" : s === "" ? "none" : s);
-const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>`;
 ---
 
+<!-- Driven by src/scripts/generator.ts, which finds everything by its data-* attribute. -->
 <div
   class="generator"
   data-generator
@@ -59,7 +61,7 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
             <path d="M3.5 8.5l3 3 6-7"></path>
           </svg>
         </span>
-        <span data-meets-text>Meets {owner}'s rules</span>
+        Meets {owner}'s rules
       </p>
     </div>
 
@@ -71,73 +73,40 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
         </span>
         <noscript>Turn on JavaScript to generate a password.</noscript>
       </output>
-      <div class="bars" aria-hidden="true" data-bars>
-        <i></i>
-        <i></i>
-        <i></i>
-        <i></i>
-        <i></i>
-      </div>
+      <StrengthBars />
       <div class="foot">
         <p class="strength">
           <b data-level></b> <span data-details></span>
         </p>
         <div class="actions">
-          <button class="btn ghost" type="button" data-regenerate disabled>
+          <Button data-regenerate disabled>
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M20 11a8 8 0 1 0-2.3 5.7"></path>
               <path d="M20 4v7h-7"></path>
             </svg>
             New
-          </button>
-          <button class="btn brand" type="button" data-copy disabled>
+          </Button>
+          <Button variant="brand" class="copy" data-copy disabled>
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <rect x="9" y="9" width="11" height="11" rx="2"></rect>
               <path d="M5 15V6a2 2 0 0 1 2-2h9"></path>
             </svg>
             <span data-copy-label>Copy</span>
-          </button>
+          </Button>
         </div>
       </div>
     </div>
 
     <div class="unsupported" data-unsupported hidden>
       <p data-unsupported-text></p>
-      <button class="btn ghost" type="button" data-use-password>
-        Use a password
-      </button>
+      <Button data-use-password>Use a password</Button>
     </div>
     <p class="sr-only" role="status" data-status></p>
   </section>
 
   <div class="controls" data-panel="password">
     <section class="card ctl">
-      <div class="ctl-head">
-        <label class="label" for="length">
-          Length
-        </label>
-        <output for="length" data-length-value>
-          {initial.length}
-        </output>
-      </div>
-      <input
-        id="length"
-        type="range"
-        min={initial.minLength}
-        max={initial.maxLength}
-        value={initial.length}
-        style={`--pct: ${pct(initial.length, initial.minLength, initial.maxLength)}`}
-        data-length
-      />
-      <div class="hints">
-        <span data-min>{initial.minLength}</span>
-        <span>min</span>
-        <span aria-hidden="true">·</span>
-        <button type="button" class="rec" data-recommend>
-          recommended
-        </button>
-        <span data-max>{initial.maxLength}</span>
-      </div>
+      <RangeField name="length" label="Length" min={initial.minLength} max={initial.maxLength} value={initial.length} />
     </section>
 
     <fieldset class="card ctl">
@@ -157,7 +126,10 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
             >
               <input type="checkbox" checked={!unavailable} disabled={locked || unavailable} data-class={c.name} />
               <span class="chip-face">
-                <Fragment set:html={lockIcon} />
+                <svg class="lock" viewBox="0 0 16 16" aria-hidden="true">
+                  <rect x="3.5" y="7" width="9" height="6.5" rx="1.5" />
+                  <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
+                </svg>
                 <span aria-hidden="true">{c.label}</span>
                 <span class="sr-only">
                   {c.title}
@@ -182,32 +154,7 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
 
   <div class="controls" data-panel="passphrase" hidden>
     <section class="card ctl">
-      <div class="ctl-head">
-        <label class="label" for="words">
-          Words
-        </label>
-        <output for="words" data-words-value>
-          {words}
-        </output>
-      </div>
-      <input
-        id="words"
-        type="range"
-        min={MIN_WORDS}
-        max={MAX_WORDS}
-        value={words}
-        style={`--pct: ${pct(words, MIN_WORDS, MAX_WORDS)}`}
-        data-words
-      />
-      <div class="hints">
-        <span data-words-min>{MIN_WORDS}</span>
-        <span>min</span>
-        <span aria-hidden="true">·</span>
-        <button type="button" class="rec" data-recommend-words>
-          recommended
-        </button>
-        <span data-words-max>{MAX_WORDS}</span>
-      </div>
+      <RangeField name="words" label="Words" min={MIN_WORDS} max={MAX_WORDS} value={DEFAULT_PASSPHRASE_OPTIONS.words} />
     </section>
 
     <fieldset class="card ctl tight">
@@ -230,20 +177,12 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
         ))}
       </div>
       <div class="switches">
-        <label class="switch">
-          <input type="checkbox" role="switch" data-capitalize />
-          <span class="track" aria-hidden="true"></span>
-          <span>
-            Capitalize <span class="faint" data-note="capitalize"></span>
-          </span>
-        </label>
-        <label class="switch">
-          <input type="checkbox" role="switch" data-number />
-          <span class="track" aria-hidden="true"></span>
-          <span>
-            Add a number <span class="faint" data-note="number"></span>
-          </span>
-        </label>
+        <Switch data-capitalize>
+          Capitalize <span class="faint" data-note="capitalize"></span>
+        </Switch>
+        <Switch data-number>
+          Add a number <span class="faint" data-note="number"></span>
+        </Switch>
       </div>
     </fieldset>
   </div>
@@ -272,6 +211,7 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     margin-bottom: 20px;
   }
 
+  /* Password / Passphrase: two radios drawn as a segmented control. */
   .mode {
     display: inline-flex;
     gap: 2px;
@@ -322,10 +262,6 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     color: var(--good-text);
   }
 
-  .meets[hidden] {
-    display: none;
-  }
-
   .ck {
     display: grid;
     place-items: center;
@@ -345,16 +281,22 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     stroke-linejoin: round;
   }
 
+  .meets[hidden],
   .result[hidden],
   .unsupported[hidden],
   .controls[hidden] {
     display: none;
   }
 
+  .result {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
   .value {
     display: block;
     min-height: 1.25em;
-    margin-bottom: 18px;
     font-family: var(--font-mono);
     font-size: 36px;
     font-weight: 500;
@@ -366,32 +308,6 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
 
   .placeholder {
     color: var(--track);
-  }
-
-  .bars {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 5px;
-    margin-bottom: 18px;
-  }
-
-  .bars i {
-    height: 8px;
-    border-radius: 999px;
-    background: var(--track);
-    transition: background 0.25s ease;
-  }
-
-  .bars[data-tone="weak"] i.on {
-    background: var(--weak);
-  }
-
-  .bars[data-tone="fair"] i.on {
-    background: var(--fair);
-  }
-
-  .bars[data-tone="good"] i.on {
-    background: var(--good);
   }
 
   .foot {
@@ -422,43 +338,9 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     gap: 8px;
   }
 
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    height: 46px;
-    padding: 0 20px;
-    border-radius: var(--radius);
-    font-size: 16px;
-    font-weight: 600;
-    transition:
-      background 0.15s ease,
-      filter 0.15s ease;
-  }
-
-  .btn:disabled {
-    cursor: default;
-    opacity: 0.55;
-  }
-
-  .ghost {
-    border: 1px solid var(--border);
-    background: var(--surface);
-  }
-
-  .ghost:not(:disabled):hover {
-    background: var(--hover);
-  }
-
-  .brand {
+  /* Wide enough for "Copied", so the buttons don't move when it changes. */
+  .actions :global(.copy) {
     min-width: 116px;
-    background: var(--brand);
-    color: var(--brand-ink);
-  }
-
-  .brand:not(:disabled):hover {
-    filter: brightness(0.94);
   }
 
   .unsupported {
@@ -492,96 +374,12 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     margin-bottom: 14px;
   }
 
-  .ctl-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 18px;
+  /* Separators and two switches in the same height as the Words card. */
+  fieldset.ctl.tight legend {
+    margin-bottom: 6px;
   }
 
-  .ctl-head output {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 600;
-  }
-
-  input[type="range"] {
-    --fill: var(--slider);
-    width: 100%;
-    height: 18px;
-    margin: 0 0 8px;
-    background: transparent;
-    -webkit-appearance: none;
-    appearance: none;
-    cursor: pointer;
-  }
-
-  input[type="range"]::-webkit-slider-runnable-track {
-    height: 8px;
-    border-radius: 999px;
-    background: linear-gradient(to right, var(--fill) 0 var(--pct), var(--track) var(--pct) 100%);
-  }
-
-  input[type="range"]::-webkit-slider-thumb {
-    width: 18px;
-    height: 18px;
-    margin-top: -5px;
-    border: 0;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow:
-      0 2px 6px rgba(26, 29, 46, 0.18),
-      0 0 0 1px var(--border);
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  input[type="range"]::-moz-range-track {
-    height: 8px;
-    border-radius: 999px;
-    background: var(--track);
-  }
-
-  input[type="range"]::-moz-range-progress {
-    height: 8px;
-    border-radius: 999px;
-    background: var(--fill);
-  }
-
-  input[type="range"]::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border: 0;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow:
-      0 2px 6px rgba(26, 29, 46, 0.18),
-      0 0 0 1px var(--border);
-  }
-
-  .hints {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-
-  /* Sets the slider to the recommended value. */
-  .rec {
-    padding: 0;
-    font-family: inherit;
-    font-size: inherit;
-    color: inherit;
-    text-decoration: underline dotted;
-    text-underline-offset: 3px;
-  }
-
-  .rec:hover {
-    color: var(--text);
-  }
-
+  /* Checkboxes and radios drawn as chips: the real input sits invisibly on top. */
   .chips {
     clear: both;
     display: flex;
@@ -634,16 +432,6 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     padding: 0 12px;
   }
 
-  /* Separators and two switches in the same height as the Length card. */
-  fieldset.ctl.tight legend {
-    margin-bottom: 6px;
-  }
-
-  .tight .switch {
-    margin-top: 4px;
-    line-height: 18px;
-  }
-
   .chip input:checked + .chip-face {
     background: var(--on);
     color: var(--on-text);
@@ -659,15 +447,9 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     outline-offset: 2px;
   }
 
-  .chip :global(.lock) {
+  /* Shown on classes the site requires. */
+  .lock {
     display: none;
-  }
-
-  .chip[data-locked] :global(.lock) {
-    display: block;
-  }
-
-  :global(.lock) {
     width: 11px;
     height: 11px;
     flex: none;
@@ -678,73 +460,16 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
     stroke-linejoin: round;
   }
 
+  .chip[data-locked] .lock {
+    display: block;
+  }
+
   .switches {
     display: flex;
     flex-wrap: wrap;
     gap: 6px 18px;
-  }
-
-  .switch {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-    font-size: 13.5px;
-    color: var(--text-muted);
-    cursor: pointer;
-  }
-
-  .switch input {
-    position: absolute;
-    width: 30px;
-    height: 18px;
-    opacity: 0;
-    cursor: pointer;
-  }
-
-  .switch input:disabled {
-    cursor: not-allowed;
-  }
-
-  .track {
-    position: relative;
-    flex: none;
-    width: 30px;
-    height: 18px;
-    border-radius: 999px;
-    background: var(--track);
-    transition: background 0.15s ease;
-  }
-
-  .track::after {
-    content: "";
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    transition: transform 0.15s ease;
-  }
-
-  .switch input:checked + .track {
-    background: var(--slider);
-  }
-
-  .switch input:checked + .track::after {
-    transform: translateX(12px);
-  }
-
-  .switch input:focus-visible + .track {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
-  }
-
-  .switch input:disabled + .track {
-    opacity: 0.6;
+    margin-top: 4px;
+    line-height: 18px;
   }
 
   .faint {
@@ -774,7 +499,7 @@ const lockIcon = `<svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect
       align-items: stretch;
     }
 
-    .actions .btn {
+    .actions :global(.btn) {
       flex: 1;
     }
 

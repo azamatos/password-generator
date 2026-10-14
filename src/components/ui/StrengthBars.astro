@@ -1,0 +1,36 @@
+---
+/** Five bars, empty until a script fills them with showMeter (src/scripts/meter.ts). */
+---
+
+<div class="bars" aria-hidden="true" data-bars>
+  {Array.from({ length: 5 }, () => (
+    <i />
+  ))}
+</div>
+
+<style>
+  .bars {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+  }
+
+  .bars i {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--track);
+    transition: background 0.25s ease;
+  }
+
+  .bars[data-tone="weak"] i.on {
+    background: var(--weak);
+  }
+
+  .bars[data-tone="fair"] i.on {
+    background: var(--fair);
+  }
+
+  .bars[data-tone="good"] i.on {
+    background: var(--good);
+  }
+</style>

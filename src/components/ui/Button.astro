@@ -1,0 +1,58 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+/** A button, or a link that looks like one when it has an href. Other attributes pass through. */
+type Props = HTMLAttributes<"button"> & {
+  /** "ghost" is outlined; "brand" is filled with the page's brand color. */
+  variant?: "ghost" | "brand";
+  href?: string;
+};
+
+const { variant = "ghost", href, class: className, ...attrs } = Astro.props;
+const Tag = href ? "a" : "button";
+---
+
+<Tag class:list={["btn", variant, className]} href={href} type={href ? undefined : "button"} {...attrs}>
+  <slot />
+</Tag>
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 46px;
+    padding: 0 20px;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background 0.15s ease,
+      filter 0.15s ease;
+  }
+
+  .btn:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+
+  .ghost {
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .ghost:not(:disabled):hover {
+    background: var(--hover);
+  }
+
+  .brand {
+    background: var(--brand);
+    color: var(--brand-ink);
+  }
+
+  .brand:not(:disabled):hover {
+    filter: brightness(0.94);
+  }
+</style>

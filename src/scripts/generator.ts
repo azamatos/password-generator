@@ -1,6 +1,7 @@
+// The generator card and its controls (src/components/Generator.astro). All the rules logic is in src/lib;
+// this file reads the controls into `prefs`, asks lib for a plan, and shows the result.
 import type { CharClass } from "@/lib/charsets";
 import { chipText } from "@/lib/describe";
-import { clamp } from "@/lib/math";
 import {
   DEFAULT_PASSPHRASE_OPTIONS,
   generatePassphrase,
@@ -22,6 +23,7 @@ import { meterForBits } from "@/lib/strength";
 import { loadWordlist } from "@/lib/wordlist";
 import { find, findAll, mount } from "./dom";
 import { showMeter } from "./meter";
+import { bindRange } from "./range";
 import { addRecent } from "./recent";
 
 type Mode = "password" | "passphrase";
@@ -35,54 +37,57 @@ const prefs: { mode: Mode; password: PasswordOptions; passphrase: PassphraseOpti
 
 let wordlist: string[] | null = null;
 
-function setRange(input: HTMLInputElement, value: number, min: number, max: number) {
-  input.min = String(min);
-  input.max = String(max);
-  input.value = String(value);
-  input.style.setProperty("--pct", `${max > min ? ((value - min) / (max - min)) * 100 : 0}%`);
-}
-
-function setup(root: HTMLElement) {
-  const rules: PasswordRules = JSON.parse(root.dataset.rules ?? "{}");
+mount("[data-generator]", (root) => {
+  const rules: PasswordRules = JSON.parse(root.dataset.rules!);
   const site = root.dataset.site!;
-  const anySite = "anySite" in root.dataset;
-  // "X" rather than "X (Twitter)" in "Meets X's rules".
+  // "X" rather than "X (Twitter)", for "required by X".
   const owner = root.dataset.owner!;
-  const $ = <T extends Element = HTMLElement>(selector: string) => find<T>(root, selector);
-  const $$ = <T extends Element = HTMLElement>(selector: string) => findAll<T>(root, selector);
+  const anySite = "anySite" in root.dataset;
 
-  const output = $<HTMLOutputElement>("[data-output]");
-  const bars = $<HTMLElement>("[data-bars]");
-  const level = $<HTMLElement>("[data-level]");
-  const details = $<HTMLElement>("[data-details]");
-  const meets = $<HTMLElement>("[data-meets]");
-  const meetsText = $<HTMLElement>("[data-meets-text]");
-  const copy = $<HTMLButtonElement>("[data-copy]");
-  const copyLabel = $<HTMLElement>("[data-copy-label]");
-  const regenerate = $<HTMLButtonElement>("[data-regenerate]");
-  const status = $<HTMLElement>("[data-status]");
-  const result = $<HTMLElement>("[data-result]");
-  const unsupported = $<HTMLElement>("[data-unsupported]");
-  const unsupportedText = $<HTMLElement>("[data-unsupported-text]");
-  const modeRadios = $$<HTMLInputElement>('input[name="mode"]');
+  const output = find<HTMLOutputElement>(root, "[data-output]");
+  const bars = find(root, "[data-bars]");
+  const level = find(root, "[data-level]");
+  const details = find(root, "[data-details]");
+  const meets = find(root, "[data-meets]");
+  const copy = find<HTMLButtonElement>(root, "[data-copy]");
+  const copyLabel = find(root, "[data-copy-label]");
+  const regenerate = find<HTMLButtonElement>(root, "[data-regenerate]");
+  const status = find(root, "[data-status]");
+  const result = find(root, "[data-result]");
+  const unsupported = find(root, "[data-unsupported]");
+  const unsupportedText = find(root, "[data-unsupported-text]");
+  const modeRadios = findAll<HTMLInputElement>(root, 'input[name="mode"]');
   const panels = {
-    password: $<HTMLElement>('[data-panel="password"]'),
-    passphrase: $<HTMLElement>('[data-panel="passphrase"]'),
+    password: find(root, '[data-panel="password"]'),
+    passphrase: find(root, '[data-panel="passphrase"]'),
   };
 
-  const length = $<HTMLInputElement>("[data-length]");
-  const lengthValue = $<HTMLOutputElement>("[data-length-value]");
-  const classInputs = $$<HTMLInputElement>("[data-class]");
-  const ambiguous = $<HTMLInputElement>("[data-ambiguous]");
-  const recommend = $<HTMLButtonElement>("[data-recommend]");
-  const recommendWords = $<HTMLButtonElement>("[data-recommend-words]");
+  // Password controls
+  const length = bindRange(root, "length", {
+    recommended: DEFAULT_PASSWORD_OPTIONS.length,
+    onChange: (value) => {
+      prefs.password.length = value;
+      renderPassword();
+    },
+  });
+  const classInputs = findAll<HTMLInputElement>(root, "[data-class]");
+  const ambiguous = find<HTMLInputElement>(root, "[data-ambiguous]");
 
-  const words = $<HTMLInputElement>("[data-words]");
-  const wordsValue = $<HTMLOutputElement>("[data-words-value]");
-  const separators = $$<HTMLInputElement>("[data-separator]");
-  const capitalize = $<HTMLInputElement>("[data-capitalize]");
-  const number = $<HTMLInputElement>("[data-number]");
+  // Passphrase controls
+  const words = bindRange(root, "words", {
+    recommended: DEFAULT_PASSPHRASE_OPTIONS.words,
+    onChange: (value) => {
+      prefs.passphrase.words = value;
+      void renderPassphrase();
+    },
+  });
+  const separators = findAll<HTMLInputElement>(root, "[data-separator]");
+  const capitalize = find<HTMLInputElement>(root, "[data-capitalize]");
+  const number = find<HTMLInputElement>(root, "[data-number]");
+  const capitalizeNote = find(root, '[data-note="capitalize"]');
+  const numberNote = find(root, '[data-note="number"]');
 
+  /** What Copy copies; empty while there's nothing to copy. */
   let current = "";
 
   function show(value: string, bits: number) {
@@ -93,31 +98,23 @@ function setup(root: HTMLElement) {
     level.textContent = meter.label;
     const size = prefs.mode === "password" ? `${value.length} characters` : `${prefs.passphrase.words} words`;
     details.textContent = `${size} · ${Math.floor(bits)} bits`;
-    // On "Any site" there are no site rules to meet, so the line stays hidden.
-    const passes = checkRules(rules, value).every((c) => c.pass);
-    meets.hidden = anySite || !passes;
-    meetsText.textContent = `Meets ${owner}'s rules`;
+    meets.hidden = anySite || !checkRules(rules, value).every((c) => c.pass);
     copy.disabled = regenerate.disabled = false;
   }
 
   function renderPassword() {
     const p = plan(rules, prefs.password);
-    setRange(length, p.length, p.minLength, p.maxLength);
-    lengthValue.value = String(p.length);
-    $<HTMLElement>("[data-min]").textContent = String(p.minLength);
-    $<HTMLElement>("[data-max]").textContent = String(p.maxLength);
-    recommend.disabled = p.length === clamp(DEFAULT_PASSWORD_OPTIONS.length, p.minLength, p.maxLength);
+    length.set(p.length, p.minLength, p.maxLength);
     for (const input of classInputs) {
       const c = input.dataset.class as CharClass;
       const locked = p.locked.includes(c);
-      const unavailable = p.unavailable.includes(c);
       input.checked = c in p.pools;
-      input.disabled = locked || unavailable;
+      input.disabled = locked || p.unavailable.includes(c);
       const chip = input.closest<HTMLElement>("[data-chip]")!;
-      chip.toggleAttribute("data-locked", locked);
       const text = chipText(chip.dataset.title!, c, p, owner);
+      chip.toggleAttribute("data-locked", locked);
       chip.title = text.title;
-      chip.querySelector("[data-state]")!.textContent = text.state;
+      find(chip, "[data-state]").textContent = text.state;
     }
     ambiguous.checked = prefs.password.avoidAmbiguous;
     show(generate(p), entropyBits(p));
@@ -135,21 +132,17 @@ function setup(root: HTMLElement) {
       return;
     }
 
-    setRange(words, p.words, p.minWords, p.maxWords);
-    wordsValue.value = String(p.words);
-    $<HTMLElement>("[data-words-min]").textContent = String(p.minWords);
-    $<HTMLElement>("[data-words-max]").textContent = String(p.maxWords);
-    recommendWords.disabled = p.words === clamp(DEFAULT_PASSPHRASE_OPTIONS.words, p.minWords, p.maxWords);
+    words.set(p.words, p.minWords, p.maxWords);
     for (const input of separators) {
       input.disabled = !p.separators.includes(input.value as Separator);
       input.checked = input.value === p.separator;
     }
     capitalize.checked = p.capitalize;
     capitalize.disabled = p.locked.capitalize;
-    $<HTMLElement>('[data-note="capitalize"]').textContent = p.locked.capitalize ? "required" : "";
+    capitalizeNote.textContent = p.locked.capitalize ? "required" : "";
     number.checked = p.number;
     number.disabled = p.locked.number;
-    $<HTMLElement>('[data-note="number"]').textContent = p.locked.number ? "required" : "";
+    numberNote.textContent = p.locked.number ? "required" : "";
 
     if (!wordlist) {
       output.value = "Loading words…";
@@ -176,14 +169,10 @@ function setup(root: HTMLElement) {
       render();
     });
   }
-  $<HTMLButtonElement>("[data-use-password]").addEventListener("click", () => {
+  find(root, "[data-use-password]").addEventListener("click", () => {
     prefs.mode = "password";
     render();
     modeRadios[0].focus();
-  });
-  length.addEventListener("input", () => {
-    prefs.password.length = Number(length.value);
-    renderPassword();
   });
   for (const input of classInputs) {
     input.addEventListener("change", () => {
@@ -194,10 +183,6 @@ function setup(root: HTMLElement) {
   ambiguous.addEventListener("change", () => {
     prefs.password.avoidAmbiguous = ambiguous.checked;
     renderPassword();
-  });
-  words.addEventListener("input", () => {
-    prefs.passphrase.words = Number(words.value);
-    void renderPassphrase();
   });
   for (const input of separators) {
     input.addEventListener("change", () => {
@@ -211,14 +196,6 @@ function setup(root: HTMLElement) {
   });
   number.addEventListener("change", () => {
     prefs.passphrase.number = number.checked;
-    void renderPassphrase();
-  });
-  recommend.addEventListener("click", () => {
-    prefs.password.length = DEFAULT_PASSWORD_OPTIONS.length;
-    renderPassword();
-  });
-  recommendWords.addEventListener("click", () => {
-    prefs.passphrase.words = DEFAULT_PASSPHRASE_OPTIONS.words;
     void renderPassphrase();
   });
   regenerate.addEventListener("click", render);
@@ -243,6 +220,4 @@ function setup(root: HTMLElement) {
   });
 
   render();
-}
-
-mount("[data-generator]", setup);
+});

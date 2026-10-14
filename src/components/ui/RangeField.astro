@@ -1,0 +1,135 @@
+---
+import { fillPercent } from "@/lib/math";
+
+/** A labeled slider with its value, min, max and a "recommended" button. bindRange (src/scripts/range.ts) drives it. */
+interface Props {
+  /** The input's id, and how the script finds the field: data-range={name}. */
+  name: string;
+  label: string;
+  min: number;
+  max: number;
+  value: number;
+}
+
+const { name, label, min, max, value } = Astro.props;
+---
+
+<div data-range={name}>
+  <div class="head">
+    <label class="label" for={name}>
+      {label}
+    </label>
+    <output for={name} data-range-value>
+      {value}
+    </output>
+  </div>
+  <input
+    id={name}
+    type="range"
+    min={min}
+    max={max}
+    value={value}
+    style={`--pct: ${fillPercent(value, min, max)}%`}
+    data-range-input
+  />
+  <div class="hints">
+    <span data-range-min>{min}</span>
+    <span>min</span>
+    <span aria-hidden="true">·</span>
+    <button type="button" class="rec" data-range-recommend>
+      recommended
+    </button>
+    <span data-range-max>{max}</span>
+  </div>
+</div>
+
+<style>
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  output {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* The filled part of the track follows --pct, set here and by the script. */
+  input {
+    width: 100%;
+    height: 18px;
+    margin: 0 0 8px;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  input::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--slider) 0 var(--pct), var(--track) var(--pct) 100%);
+  }
+
+  input::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+    margin-top: -5px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow:
+      0 2px 6px rgba(26, 29, 46, 0.18),
+      0 0 0 1px var(--border);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input::-moz-range-track {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--track);
+  }
+
+  input::-moz-range-progress {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--slider);
+  }
+
+  input::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow:
+      0 2px 6px rgba(26, 29, 46, 0.18),
+      0 0 0 1px var(--border);
+  }
+
+  .hints {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .rec {
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+  }
+
+  .rec:hover {
+    color: var(--text);
+  }
+</style>

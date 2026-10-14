@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
+import { ANY } from "@/data/platforms";
 
 /** Share images are 1200×630, rendered at build time from the same data as the pages. */
 const WIDTH = 1200;
@@ -27,7 +28,7 @@ const BORDER = "#e2e3ec";
 const TRACK = "#e2e3ec";
 const FAINT = "#666a87";
 const GOOD_TEXT = "#1f7556";
-const CORAL = "#ff6b4d";
+const CORAL = ANY.color;
 const TONES = { good: "#2a8e6c", fair: "#c79b2e", weak: "#c4421f" };
 
 /** Mixes two hex colors; t is the share of b. */

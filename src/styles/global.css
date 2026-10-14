@@ -77,6 +77,8 @@
 }
 
 html {
+  /* Room for a scrollbar on every page, so the layout doesn't shift between pages or when Recent locks scrolling. */
+  scrollbar-gutter: stable;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }

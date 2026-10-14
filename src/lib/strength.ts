@@ -11,11 +11,12 @@ export interface Meter {
 }
 
 /**
- * For a generated password, whose strength is known exactly in bits: a bar per 20 bits. At 10 billion
- * guesses a second, 60 bits holds about 1.8 years on average and 80 bits about 2 million years.
+ * For a generated password, whose strength is known exactly in bits: a bar per 20 bits, so a new bar and a new
+ * label start together at 40, 60 and 80. At 10 billion guesses a second, 60 bits holds about 1.8 years on
+ * average and 80 bits about 2 million years.
  */
 export function meterForBits(bits: number): Meter {
-  const bars = clamp(Math.ceil(bits / 20), 1, 5);
+  const bars = clamp(Math.floor(bits / 20) + 1, 1, 5);
   if (bits >= 80) return { label: "Very strong", bars, tone: "good" };
   if (bits >= 60) return { label: "Strong", bars, tone: "good" };
   if (bits >= 40) return { label: "Fair", bars, tone: "fair" };

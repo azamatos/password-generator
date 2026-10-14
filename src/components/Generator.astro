@@ -79,14 +79,14 @@ const separatorLabel = (s: string) => (s === " " ? "space" : s === "" ? "none" :
           <b data-level></b> <span data-details></span>
         </p>
         <div class="actions">
-          <Button data-regenerate disabled>
+          <Button class="action" data-regenerate disabled>
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M20 11a8 8 0 1 0-2.3 5.7"></path>
               <path d="M20 4v7h-7"></path>
             </svg>
             New
           </Button>
-          <Button variant="brand" class="copy" data-copy disabled>
+          <Button variant="brand" class="action copy" data-copy disabled>
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <rect x="9" y="9" width="11" height="11" rx="2"></rect>
               <path d="M5 15V6a2 2 0 0 1 2-2h9"></path>
@@ -499,7 +499,7 @@ const separatorLabel = (s: string) => (s === " " ? "space" : s === "" ? "none" :
       align-items: stretch;
     }
 
-    .actions :global(.btn) {
+    .actions :global(.action) {
       flex: 1;
     }
 

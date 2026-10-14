@@ -1,4 +1,5 @@
 // The header persists across pages: the tab pill slides to the current page, and Recent keeps its list.
+import { clamp } from "@/lib/math";
 import { find, findAll, mount } from "./dom";
 import { clearRecent, onRecentChange, recentItems, type RecentItem } from "./recent";
 
@@ -10,7 +11,7 @@ function ago(at: number): string {
 }
 
 // Enough to recognize a password without showing it to anyone looking over your shoulder.
-const mask = (value: string) => value.slice(0, 3) + "•".repeat(Math.min(Math.max(value.length - 3, 4), 12));
+const mask = (value: string) => value.slice(0, 3) + "•".repeat(clamp(value.length - 3, 4, 12));
 
 function setupRecent(header: HTMLElement) {
   const open = find<HTMLButtonElement>(header, "[data-recent-open]");

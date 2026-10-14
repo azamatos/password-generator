@@ -41,12 +41,19 @@ mount("[data-health]", (root) => {
   const warning = find(root, "[data-warning]");
   const suggestions = find<HTMLUListElement>(root, "[data-suggestions]");
 
+  /** Which input the results belong to; older answers are dropped. */
   let latest = 0;
+  /** zxcvbn's score for the latest input, once it's known. */
+  let score: CheckResponse["score"] | null = null;
+  /** Whether the latest input was found in breaches. */
+  let leaked = false;
   let leakTimer = 0;
   let leakAbort: AbortController | undefined;
 
-  const showScore = (score: CheckResponse["score"]) => {
-    const meter = meterForScore(score);
+  // A leaked password is guessed first, however random it looks, so a leak overrides zxcvbn's score.
+  const showVerdict = () => {
+    if (score === null) return;
+    const meter = meterForScore(leaked ? 0 : score);
     showMeter(bars, meter);
     verdict.textContent = meter.label;
   };
@@ -62,6 +69,8 @@ mount("[data-health]", (root) => {
     leakAbort?.abort();
     if (!optIn.checked || !password) {
       leak.hidden = leakChip.hidden = true;
+      leaked = false;
+      showVerdict();
       return;
     }
     leakAbort = new AbortController();
@@ -76,8 +85,8 @@ mount("[data-health]", (root) => {
         ? `Found ${count.toLocaleString("en")} times in data breaches. Don't use it anywhere.`
         : "Not found in known data breaches.";
       leakChip.hidden = !count;
-      // A leaked password is guessed first, however random it looks.
-      if (count) showScore(0);
+      leaked = count > 0;
+      showVerdict();
     } catch (error) {
       if ((error as Error).name === "AbortError" || run !== latest) return;
       leak.dataset.state = "error";
@@ -88,6 +97,8 @@ mount("[data-health]", (root) => {
   async function update() {
     const password = input.value;
     const run = ++latest;
+    score = null;
+    leaked = false;
     clearTimeout(leakTimer);
     leakAbort?.abort();
     if (!password) {
@@ -106,7 +117,8 @@ mount("[data-health]", (root) => {
     loading.hidden = true;
     results.hidden = false;
 
-    showScore(r.score);
+    score = r.score;
+    showVerdict();
     online.textContent = humanizeSeconds(r.guesses / 10);
     // A leaked database with a slow hash such as bcrypt, the case zxcvbn's estimates are made for.
     offline.textContent = humanizeSeconds(r.guesses / 1e4);
@@ -124,7 +136,11 @@ mount("[data-health]", (root) => {
   }
 
   input.addEventListener("input", () => void update());
-  optIn.addEventListener("change", () => void checkLeak(input.value, latest));
+  optIn.addEventListener("change", () => {
+    // Check now rather than after the typing pause, and only once.
+    clearTimeout(leakTimer);
+    void checkLeak(input.value, latest);
+  });
   find(root, "[data-clear]").addEventListener("click", () => {
     input.value = "";
     void update();

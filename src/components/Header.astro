@@ -268,10 +268,9 @@ const tabs = [
     }
   }
 
-  /* Keep the page still behind the panel; the gutter stays so nothing shifts sideways. */
+  /* Keep the page still behind the panel. The scrollbar gutter is always reserved (global.css), so nothing shifts. */
   :global(html:has(.drawer[open])) {
     overflow: hidden;
-    scrollbar-gutter: stable;
   }
 
   .drawer-head {

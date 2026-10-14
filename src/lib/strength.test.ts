@@ -8,6 +8,13 @@ describe("meterForBits", () => {
     expect(meterForBits(45)).toEqual({ label: "Fair", bars: 3, tone: "fair" });
     expect(meterForBits(5)).toEqual({ label: "Weak", bars: 1, tone: "weak" });
   });
+
+  it("starts a new bar where a new label starts", () => {
+    expect(meterForBits(79.9)).toMatchObject({ label: "Strong", bars: 4 });
+    expect(meterForBits(80)).toMatchObject({ label: "Very strong", bars: 5 });
+    expect(meterForBits(60)).toMatchObject({ label: "Strong", bars: 4 });
+    expect(meterForBits(40)).toMatchObject({ label: "Fair", bars: 3 });
+  });
 });
 
 describe("meterForScore", () => {

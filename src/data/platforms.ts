@@ -59,5 +59,8 @@ export function parsePlatforms(input: unknown): Platform[] {
 
 export const platforms = parsePlatforms(data);
 
-/** "Any site", at /: the generator's own rules, listed first. It has no logo or monogram. */
+/**
+ * "Any site", at /: the generator's own rules, listed first. It has no logo or monogram. Its color is the site's
+ * coral accent, also --coral in global.css and used by the share images; color.test.ts keeps the CSS in step.
+ */
 export const ANY = { id: "any", name: "Any site", color: "#ff6b4d", rules: ANY_SITE } as const;

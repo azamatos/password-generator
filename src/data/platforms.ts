@@ -24,8 +24,12 @@ const rules = z
     required: z.array(z.array(charClass).nonempty()),
     minClasses: z.strictObject({ count, from: z.array(charClass).nonempty() }).optional(),
     // null for the default set, "" for none, or { "except": "#" } for the default set without some.
+    // A letter, digit or repeat in the set would be drawn more often than the rest, and overstate the entropy.
     symbols: z.union([
-      z.string(),
+      z
+        .string()
+        .regex(/^[^A-Za-z0-9\s]*$/, "symbols may only hold symbols")
+        .refine((s) => new Set(s).size === s.length, "symbols lists a character twice"),
       z.null(),
       z
         .strictObject({ except: z.string().min(1) })

@@ -36,6 +36,8 @@ describe("platforms.json", () => {
     expect(broken({ minLenght: 8 })).toThrow(/minLenght/);
     expect(broken({ required: [["digits"]] })).toThrow(/required/);
     expect(broken({ minLength: 30 })).toThrow(/minLength is above maxLength/);
+    expect(broken({ symbols: "!@a" })).toThrow(/only hold symbols/);
+    expect(broken({ symbols: "!@!" })).toThrow(/twice/);
     expect(() => parsePlatforms([{ ...valid, checked: "Oct 2026" }])).toThrow(/YYYY-MM/);
   });
 

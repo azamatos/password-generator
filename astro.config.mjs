@@ -1,16 +1,24 @@
 // @ts-check
 import { defineConfig, fontProviders } from "astro/config";
 import sitemap from "@astrojs/sitemap";
+import { cspCheck } from "./src/integrations/csp-check";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://pass.azamatos.com",
 
-  integrations: [sitemap()],
+  integrations: [sitemap(), cspCheck()],
 
   // The CSS is small, so inline it instead of a render-blocking request.
   build: {
     inlineStylesheets: "always",
+  },
+
+  vite: {
+    build: {
+      // Astro inlines small scripts into the page, which the CSP in public/_headers would block. Keep them as files.
+      assetsInlineLimit: (file) => (file.endsWith(".js") ? false : undefined),
+    },
   },
 
   server: {

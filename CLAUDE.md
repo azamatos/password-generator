@@ -8,6 +8,8 @@ pass.azamatos.com is a static site that generates passwords which pass a chosen 
 
 It is deployed on Cloudflare Pages as the static `dist/` folder. Pages injects Cloudflare Web Analytics at build time, and `public/_redirects` sends old URLs (the old vault and per-platform health pages, and the dropped Reddit page) to current ones with 301s.
 
+`public/_headers` sets a strict CSP: scripts come only from this site and Cloudflare's beacon, and pages may connect only to this site, Have I Been Pwned and Cloudflare's analytics. Astro is set never to inline scripts, and `src/integrations/csp-check.ts` fails the build when a page has an inline script whose hash isn't in `script-src`. A new external host needs a CSP change first.
+
 ## Commands
 
 Requires Node >= 22.12 and pnpm 10.

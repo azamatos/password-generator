@@ -120,15 +120,21 @@ mount("[data-generator]", (root) => {
     show(generate(p), entropyBits(p));
   }
 
+  /** Shows why there's no passphrase, with "Use a password" in its place. */
+  function noPassphrase(reason: string) {
+    unsupported.hidden = false;
+    result.hidden = panels.passphrase.hidden = true;
+    unsupportedText.textContent = reason;
+    current = "";
+  }
+
   async function renderPassphrase() {
     const p = planPassphrase(rules, prefs.passphrase);
-    const blocked = p.unsupported !== null;
-    unsupported.hidden = !blocked;
-    result.hidden = panels.passphrase.hidden = blocked;
+    unsupported.hidden = true;
+    result.hidden = panels.passphrase.hidden = false;
     meets.hidden = true;
-    if (blocked) {
-      unsupportedText.textContent = `Passphrases don't fit ${owner}: ${p.unsupported}`;
-      current = "";
+    if (p.unsupported !== null) {
+      noPassphrase(`Passphrases don't fit ${owner}: ${p.unsupported}`);
       return;
     }
 
@@ -147,7 +153,16 @@ mount("[data-generator]", (root) => {
     if (!wordlist) {
       output.value = "Loading words…";
       copy.disabled = regenerate.disabled = true;
-      wordlist = await loadWordlist();
+      try {
+        wordlist = await loadWordlist();
+      } catch {
+        // Offline, or a tab opened before a deploy asking for a file that's gone. A failed import may be cached,
+        // so a reload is the sure retry.
+        if (prefs.mode === "passphrase") {
+          noPassphrase("Couldn't load the word list. Check your connection, then reload the page.");
+        }
+        return;
+      }
       if (prefs.mode !== "passphrase") return;
     }
     show(generatePassphrase(wordlist, p), passphraseBits(wordlist.length, p));

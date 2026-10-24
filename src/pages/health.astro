@@ -78,6 +78,10 @@ import Base from "@/layouts/Base.astro";
           Loading the word lists, once…
         </p>
 
+        <p class="status" data-failed hidden>
+          Couldn't load the strength check. Check your connection, then reload the page.
+        </p>
+
         <div class="results" aria-live="polite" data-results hidden>
           <div class="verdict">
             <b data-verdict></b>

@@ -8,13 +8,15 @@ export interface CheckRequest {
   password: string;
 }
 
-export interface CheckResponse {
+export interface CheckResult {
   id: number;
   score: 0 | 1 | 2 | 3 | 4;
   guesses: number;
   warning: string | null;
   suggestions: string[];
 }
+
+export type CheckResponse = CheckResult | { id: number; failed: true };
 
 const zxcvbn = new ZxcvbnFactory({
   dictionary: { ...common.dictionary, ...en.dictionary },
@@ -25,13 +27,19 @@ const zxcvbn = new ZxcvbnFactory({
 
 self.addEventListener("message", async (event: MessageEvent<CheckRequest>) => {
   const { id, password } = event.data;
-  const result = await zxcvbn.checkAsync(password);
-  const response: CheckResponse = {
-    id,
-    score: result.score,
-    guesses: result.guesses,
-    warning: result.feedback.warning,
-    suggestions: result.feedback.suggestions,
-  };
+  let response: CheckResponse;
+  try {
+    const result = await zxcvbn.checkAsync(password);
+    response = {
+      id,
+      score: result.score,
+      guesses: result.guesses,
+      warning: result.feedback.warning,
+      suggestions: result.feedback.suggestions,
+    };
+  } catch {
+    // An error thrown in here never reaches the page, which would wait for an answer forever.
+    response = { id, failed: true };
+  }
   self.postMessage(response);
 });

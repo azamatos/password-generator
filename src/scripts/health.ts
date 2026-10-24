@@ -4,24 +4,32 @@ import { meterForScore } from "@/lib/strength";
 import { humanizeSeconds } from "@/lib/time";
 import { find, mount } from "./dom";
 import { showMeter } from "./meter";
-import type { CheckRequest, CheckResponse } from "./zxcvbn.worker";
+import type { CheckRequest, CheckResponse, CheckResult } from "./zxcvbn.worker";
 
 let worker: Worker | undefined;
 let nextId = 0;
 const pending = new Map<number, (r: CheckResponse) => void>();
 
-/** zxcvbn's verdict for a password. The worker and its word lists load on the first call. */
-function analyse(password: string): Promise<CheckResponse> {
+/** zxcvbn's verdict for a password, or null when it failed. The worker and its word lists load on the first call. */
+function analyse(password: string): Promise<CheckResult | null> {
   if (!worker) {
     worker = new Worker(new URL("./zxcvbn.worker.ts", import.meta.url), { type: "module" });
     worker.onmessage = (e: MessageEvent<CheckResponse>) => {
       pending.get(e.data.id)?.(e.data);
       pending.delete(e.data.id);
     };
+    // The worker didn't load (offline, or a tab opened before a deploy). Answer everyone waiting, and start a new
+    // worker on the next call.
+    worker.onerror = () => {
+      worker?.terminate();
+      worker = undefined;
+      for (const [id, resolve] of pending) resolve({ id, failed: true });
+      pending.clear();
+    };
   }
   const id = ++nextId;
   return new Promise((resolve) => {
-    pending.set(id, resolve);
+    pending.set(id, (r) => resolve("failed" in r ? null : r));
     worker!.postMessage({ id, password } satisfies CheckRequest);
   });
 }
@@ -31,6 +39,7 @@ mount("[data-health]", (root) => {
   const toggle = find<HTMLButtonElement>(root, "[data-toggle]");
   const optIn = find<HTMLInputElement>(root, "[data-leak-opt-in]");
   const loading = find(root, "[data-loading]");
+  const failed = find(root, "[data-failed]");
   const results = find(root, "[data-results]");
   const bars = find(root, "[data-bars]");
   const verdict = find(root, "[data-verdict]");
@@ -44,7 +53,7 @@ mount("[data-health]", (root) => {
   /** Which input the results belong to; older answers are dropped. */
   let latest = 0;
   /** zxcvbn's score for the latest input, once it's known. */
-  let score: CheckResponse["score"] | null = null;
+  let score: CheckResult["score"] | null = null;
   /** Whether the latest input was found in breaches. */
   let leaked = false;
   let leakTimer = 0;
@@ -102,7 +111,7 @@ mount("[data-health]", (root) => {
     clearTimeout(leakTimer);
     leakAbort?.abort();
     if (!password) {
-      results.hidden = loading.hidden = true;
+      results.hidden = loading.hidden = failed.hidden = true;
       return;
     }
     // Drop the previous password's leak result straight away; the new one follows after a pause.
@@ -115,7 +124,9 @@ mount("[data-health]", (root) => {
     const r = await analyse(password);
     if (run !== latest) return;
     loading.hidden = true;
-    results.hidden = false;
+    failed.hidden = Boolean(r);
+    results.hidden = !r;
+    if (!r) return;
 
     score = r.score;
     showVerdict();

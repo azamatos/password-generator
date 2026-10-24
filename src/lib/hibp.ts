@@ -26,11 +26,16 @@ export async function pwnedCount(password: string, signal?: AbortSignal): Promis
   return countIn(await response.text(), suffix);
 }
 
-/** Finds the suffix in a range response ("SUFFIX:COUNT" lines). Padding lines have a count of 0. */
+/**
+ * Finds the suffix in a range response ("SUFFIX:COUNT" lines). Padding lines have a count of 0. Anything else
+ * throws: a Wi-Fi sign-in page answering in the API's place must not read as "not found in breaches".
+ */
 export function countIn(body: string, suffix: string): number {
-  for (const line of body.split("\n")) {
-    const [lineSuffix, count] = line.trim().split(":");
-    if (lineSuffix === suffix) return Number.parseInt(count, 10) || 0;
+  let found = 0;
+  for (const line of body.trim().split("\n")) {
+    const match = /^([0-9A-F]{35}):(\d+)$/.exec(line.trim());
+    if (!match) throw new Error("Not a Have I Been Pwned range response");
+    if (match[1] === suffix) found = Number(match[2]);
   }
-  return 0;
+  return found;
 }

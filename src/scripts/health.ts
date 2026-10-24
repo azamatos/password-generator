@@ -42,6 +42,7 @@ mount("[data-health]", (root) => {
   const optIn = find<HTMLInputElement>(root, "[data-leak-opt-in]");
   const loading = find(root, "[data-loading]");
   const failed = find(root, "[data-failed]");
+  const announce = find(root, "[data-announce]");
   const results = find(root, "[data-results]");
   const bars = find(root, "[data-bars]");
   const verdict = find(root, "[data-verdict]");
@@ -62,11 +63,13 @@ mount("[data-health]", (root) => {
   let leakAbort: AbortController | undefined;
 
   // A leaked password is guessed first, however random it looks, so a leak overrides zxcvbn's score.
-  const showVerdict = () => {
+  const showVerdict = (news = "") => {
     if (score === null) return;
     const meter = meterForScore(leaked ? 0 : score);
     showMeter(bars, meter);
     verdict.textContent = meter.label;
+    // Screen readers hear the level and the leak result, not the whole panel on every keystroke.
+    announce.textContent = news ? `${meter.label}. ${news}` : meter.label;
   };
 
   optIn.checked = leakCheckOn;
@@ -99,11 +102,12 @@ mount("[data-health]", (root) => {
         : "Not found in known data breaches.";
       leakChip.hidden = !count;
       leaked = count > 0;
-      showVerdict();
+      showVerdict(leak.textContent);
     } catch (error) {
       if ((error as Error).name === "AbortError" || run !== latest) return;
       leak.dataset.state = "error";
       leak.textContent = "Couldn't reach Have I Been Pwned. Check your connection.";
+      showVerdict(leak.textContent);
     }
   }
 
@@ -116,6 +120,7 @@ mount("[data-health]", (root) => {
     leakAbort?.abort();
     if (!password) {
       results.hidden = loading.hidden = failed.hidden = true;
+      announce.textContent = "";
       return;
     }
     // Drop the previous password's leak result straight away; the new one follows after a pause.
@@ -130,7 +135,10 @@ mount("[data-health]", (root) => {
     loading.hidden = true;
     failed.hidden = Boolean(r);
     results.hidden = !r;
-    if (!r) return;
+    if (!r) {
+      announce.textContent = failed.textContent!.trim();
+      return;
+    }
 
     score = r.score;
     showVerdict();

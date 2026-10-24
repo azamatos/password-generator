@@ -83,7 +83,9 @@ import Base from "@/layouts/Base.astro";
           Couldn't load the strength check. Check your connection, then reload the page.
         </p>
 
-        <div class="results" aria-live="polite" data-results hidden>
+        <p class="sr-only" role="status" data-announce></p>
+
+        <div class="results" data-results hidden>
           <div class="verdict">
             <b data-verdict></b>
             <span class="chip" data-leak-chip hidden>

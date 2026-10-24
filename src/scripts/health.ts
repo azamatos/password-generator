@@ -9,6 +9,8 @@ import type { CheckRequest, CheckResponse, CheckResult } from "./zxcvbn.worker";
 let worker: Worker | undefined;
 let nextId = 0;
 const pending = new Map<number, (r: CheckResponse) => void>();
+// In memory like the generator's choices: turning the leak check off holds until the tab closes.
+let leakCheckOn = true;
 
 /** zxcvbn's verdict for a password, or null when it failed. The worker and its word lists load on the first call. */
 function analyse(password: string): Promise<CheckResult | null> {
@@ -66,6 +68,8 @@ mount("[data-health]", (root) => {
     showMeter(bars, meter);
     verdict.textContent = meter.label;
   };
+
+  optIn.checked = leakCheckOn;
 
   toggle.addEventListener("click", () => {
     const show = input.type === "password";
@@ -148,6 +152,7 @@ mount("[data-health]", (root) => {
 
   input.addEventListener("input", () => void update());
   optIn.addEventListener("change", () => {
+    leakCheckOn = optIn.checked;
     // Check now rather than after the typing pause, and only once.
     clearTimeout(leakTimer);
     void checkLeak(input.value, latest);

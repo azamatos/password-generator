@@ -7,6 +7,9 @@ import { cspCheck } from "./src/integrations/csp-check";
 export default defineConfig({
   site: "https://pass.azamatos.com",
 
+  // src/scripts/pages.ts loads pages ahead itself. Astro's prefetch would download each one a second time.
+  prefetch: false,
+
   integrations: [sitemap(), cspCheck()],
 
   // The CSS is small, so inline it instead of a render-blocking request.

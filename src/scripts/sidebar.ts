@@ -89,5 +89,5 @@ mount("[data-sidebar]", (side) => {
   render();
   fit();
   markCurrent();
-  document.addEventListener("astro:page-load", markCurrent);
+  document.addEventListener("astro:after-swap", markCurrent);
 });

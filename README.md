@@ -42,7 +42,8 @@ passwords lives in the open tab's memory and is gone on reload.
 | CSS (gzip, inlined)                                    | 5.6 kB                                                                                      |
 | Lighthouse on a phone (local)                          | performance 99–100; accessibility, best practices and SEO 100                               |
 | Layout shift while a page loads, at 360 px and 1280 px | 0                                                                                           |
-| Tests                                                  | 87 unit tests; 41 Playwright tests in Chromium, Firefox and WebKit, with axe in both themes |
+| Switching pages, with 200 ms of network delay          | no request; the new page is on screen 15–50 ms after the click                              |
+| Tests                                                  | 87 unit tests; 43 Playwright tests in Chromium, Firefox and WebKit, with axe in both themes |
 
 ## Run it locally
 

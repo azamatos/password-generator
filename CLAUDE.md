@@ -50,11 +50,12 @@ Before calling a change done, run `pnpm test && pnpm lint && pnpm check`, and `p
 
 **Client router and persistence.** `Base.astro` includes `<ClientRouter />`, and `Header.astro` and `Sidebar.astro` use `transition:persist`:
 
-- Their DOM and listeners survive navigation, so on each `astro:page-load` they only update `aria-current`, the tab pill and the sidebar's current item.
+- Their DOM and listeners survive navigation, so on each `astro:after-swap` they only update `aria-current`, the tab pill and the sidebar's current item.
 - Page content (the generator, `/health`) is swapped on each navigation and set up again.
 - JS module state also survives navigation:
   - `src/scripts/generator.ts` keeps the user's choices in `prefs`, so they carry over between platforms.
   - `src/scripts/recent.ts` keeps copied passwords in memory only. Never writing them to storage is deliberate, for privacy. This is also why the ClientRouter stays: a full page load would empty the Recent list.
+- **Pages come from memory.** `src/scripts/pages.ts` downloads each page once per tab and hands it to the router in `astro:before-preparation`, so switching pages makes no request. Both tabs and the current page load once the first page has; other links load when pointed at, focused or touched, along with their scripts. Astro's prefetch is off (`prefetch: false`): Cloudflare serves HTML with `max-age=0` and no ETag, so the router downloaded every prefetched page again, which cost a round trip per click.
 
 **Data flow for a platform page:**
 

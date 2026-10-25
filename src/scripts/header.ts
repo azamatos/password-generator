@@ -100,5 +100,6 @@ mount("[data-header]", (header) => {
   setupRecent(header);
   movePill(header, false);
   window.addEventListener("resize", () => movePill(header, false));
-  document.addEventListener("astro:page-load", () => movePill(header, true));
+  // As soon as the page changes, rather than after its scripts have run.
+  document.addEventListener("astro:after-swap", () => movePill(header, true));
 });

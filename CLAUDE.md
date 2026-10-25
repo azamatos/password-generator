@@ -24,9 +24,21 @@ pnpm vitest run -t "PayPal"               # tests whose name matches
 pnpm lint                                 # eslint (ts + astro)
 pnpm check                                # astro check: types in .astro and .ts
 pnpm format                               # prettier --write (printWidth 120)
+pnpm format:check                         # prettier --check, as CI runs it
+pnpm e2e                                  # Playwright + axe in Chromium, Firefox and WebKit (builds first)
+pnpm exec playwright test health.spec.ts --project=chromium   # one file, one engine
+pnpm size                                 # gzip budgets (scripts/size.mjs), after pnpm build
 ```
 
-Before calling a change done, run `pnpm test && pnpm lint && pnpm check`, and `pnpm prettier --check .` on the files you touched.
+Before calling a change done, run `pnpm test && pnpm lint && pnpm check`, and `pnpm prettier --check .` on the files you touched. When pages, components or scripts change, also run `pnpm e2e` and `pnpm build && pnpm size`.
+
+## Tests and CI
+
+- **`tests/e2e/`** runs against the built site, served by `tests/e2e/server.mjs` with the headers from `public/_headers`, so every test also runs under the real CSP. With `pnpm e2e` locally, a server already on :4011 is reused and not rebuilt; stop it after changing code.
+- The tests never reach Have I Been Pwned: `pwned()` in `tests/e2e/helpers.ts` answers the range API. `open()` waits for the page's script to set `data-mounted`, since the built markup looks ready before the script can react.
+- `a11y.spec.ts` runs axe on every screen and state in both color schemes; add new states to its list. `keyboard.spec.ts` tabs through whole pages and fails when a focused element shows no change.
+- **Budgets:** `scripts/size.mjs` counts what each page loads up front (its scripts and their static imports), the word list and the worker. Raising a limit needs a reason in the commit. Lighthouse thresholds are in `lighthouserc.json`.
+- **CI** (`.github/workflows/ci.yml`) runs everything on pushes to `main`, on pull requests and on the 1st of each month. The monthly run exists for the test that fails when a site's rules are more than 6 months old.
 
 ## Architecture
 

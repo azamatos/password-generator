@@ -41,6 +41,19 @@ describe("platforms.json", () => {
     expect(() => parsePlatforms([{ ...valid, checked: "Oct 2026" }])).toThrow(/YYYY-MM/);
   });
 
+  // Sites change their rules without notice. CI also runs once a month, so this fails even when nothing is pushed.
+  it("were checked in the last 6 months", () => {
+    const month = (date: Date) => date.getFullYear() * 12 + date.getMonth();
+    const now = month(new Date());
+    const stale = platforms
+      .filter((p) => {
+        const age = now - month(new Date(`${p.checked}-01T00:00`));
+        return age < 0 || age > 6;
+      })
+      .map((p) => `${p.name} (checked ${p.checked})`);
+    expect(stale, "Check their rules again and update `checked`").toEqual([]);
+  });
+
   it("have unique ids and an icon each", () => {
     expect(new Set(platforms.map((p) => p.id)).size).toBe(platforms.length);
     for (const p of platforms) {

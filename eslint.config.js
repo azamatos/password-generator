@@ -8,4 +8,6 @@ export default defineConfig(
   js.configs.recommended,
   tseslint.configs.recommended,
   astro.configs.recommended,
+  // Node scripts: the size budgets and the test server.
+  { files: ["**/*.mjs"], languageOptions: { globals: { console: "readonly", process: "readonly", URL: "readonly" } } },
 );

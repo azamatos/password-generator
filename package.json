@@ -15,8 +15,11 @@
     "check": "astro check",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "size": "node scripts/size.mjs"
   },
   "author": "Azamat Jorayev (https://azamatos.com)",
   "license": "MIT",
@@ -29,7 +32,9 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.64.1",
     "@resvg/resvg-js": "^2.6.2",
     "eslint": "^10.12.0",
     "eslint-plugin-astro": "^3.2.1",

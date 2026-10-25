@@ -34,8 +34,6 @@ questions, in this order:
 - **Its dark theme only follows the device.** There's no switch, and its warm brown doesn't match the family's dark.
 - **The trust story is invisible.** Every site's rules come with sources, a "checked" month and sometimes a note, but
   the page never shows them.
-- **Three light-theme contrast failures:** the "Leaked" chip (3.9:1), the 404 number (2.7:1) and the switch's off
-  track (1.3:1).
 
 ## Situations to design
 

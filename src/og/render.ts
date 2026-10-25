@@ -29,7 +29,7 @@ const TRACK = "#e2e3ec";
 const FAINT = "#666a87";
 const GOOD_TEXT = "#1f7556";
 const CORAL = ANY.color;
-const TONES = { good: "#2a8e6c", fair: "#c79b2e", weak: "#c4421f" };
+const TONES = { good: "#2a8e6c", fair: "#c79b2e", weak: "#b03b1c" };
 
 /** Mixes two hex colors; t is the share of b. */
 function mix(a: string, b: string, t: number): string {

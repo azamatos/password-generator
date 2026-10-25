@@ -27,6 +27,7 @@ type Props = Omit<HTMLAttributes<"input">, "type" | "role">;
   /* The real checkbox sits invisibly over the track, so it keeps native focus and clicks. */
   .switch input {
     position: absolute;
+    z-index: 1;
     width: 30px;
     height: 18px;
     opacity: 0;
@@ -44,6 +45,8 @@ type Props = Omit<HTMLAttributes<"input">, "type" | "role">;
     height: 18px;
     border-radius: 999px;
     background: var(--track);
+    /* The track alone is too faint against a card, so off is drawn as an outline and on as a fill. */
+    box-shadow: inset 0 0 0 1.5px var(--text-faint);
     transition: background 0.15s ease;
   }
 
@@ -62,6 +65,7 @@ type Props = Omit<HTMLAttributes<"input">, "type" | "role">;
 
   .switch input:checked + .track {
     background: var(--slider);
+    box-shadow: none;
   }
 
   .switch input:checked + .track::after {

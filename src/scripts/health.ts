@@ -159,6 +159,8 @@ mount("[data-health]", (root) => {
   }
 
   input.addEventListener("input", () => void update());
+  // Typing, pasting or autofill before this script loaded fired no input event, so check what's there now.
+  if (input.value) void update();
   optIn.addEventListener("change", () => {
     leakCheckOn = optIn.checked;
     // Check now rather than after the typing pause, and only once.

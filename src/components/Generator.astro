@@ -7,7 +7,8 @@ import { shortName } from "@/data/types";
 import { DEFAULT_SYMBOLS } from "@/lib/charsets";
 import { chipText } from "@/lib/describe";
 import { DEFAULT_PASSPHRASE_OPTIONS, MAX_WORDS, MIN_WORDS, SEPARATORS } from "@/lib/passphrase";
-import { DEFAULT_PASSWORD_OPTIONS, plan, type PasswordRules } from "@/lib/password";
+import { DEFAULT_PASSWORD_OPTIONS, entropyBits, plan, type PasswordRules } from "@/lib/password";
+import { meterForBits } from "@/lib/strength";
 
 interface Props {
   rules: PasswordRules;
@@ -21,6 +22,8 @@ const { rules, site, anySite = false } = Astro.props;
 const owner = shortName(site);
 // Rendered with the script's starting options, so nothing jumps when it takes over.
 const initial = plan(rules, DEFAULT_PASSWORD_OPTIONS);
+const initialBits = entropyBits(initial);
+const initialMeter = meterForBits(initialBits);
 const symbols = rules.symbols || DEFAULT_SYMBOLS;
 const classes = [
   { name: "lower", label: "a–z", title: "Lowercase letters" },
@@ -74,10 +77,13 @@ const separatorLabel = (s: string) => (s === " " ? "space" : s === "" ? "none" :
         </span>
         <noscript>Turn on JavaScript to generate a password.</noscript>
       </output>
-      <StrengthBars />
+      <StrengthBars meter={initialMeter} />
       <div class="foot">
         <p class="strength">
-          <b data-level></b> <span data-details></span>
+          <b data-level>{initialMeter.label}</b>
+          <span data-details>
+            {initial.length} characters · {Math.floor(initialBits)} bits
+          </span>
         </p>
         <div class="actions">
           <Button class="action" data-regenerate disabled>

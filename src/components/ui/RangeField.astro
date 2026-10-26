@@ -1,43 +1,49 @@
 ---
-import { fillPercent } from "@/lib/math";
+import { position } from "@/lib/math";
 
-/** A labeled slider with its value, min, max and a "recommended" button. bindRange (src/scripts/range.ts) drives it. */
+/**
+ * A slider with its value in large type, its min and max, and "Recommended" or "Reset to N" between them. A real range
+ * input sits invisibly over the drawn track, so it keeps native keyboard and touch. bindRange (src/scripts/range.ts)
+ * drives it.
+ */
 interface Props {
   /** The input's id, and how the script finds the field: data-range={name}. */
   name: string;
   label: string;
+  /** After the value: "characters", "words". */
+  unit: string;
   min: number;
   max: number;
   value: number;
+  recommended: number;
 }
 
-const { name, label, min, max, value } = Astro.props;
+const { name, label, unit, min, max, value, recommended } = Astro.props;
 ---
 
-<div data-range={name}>
+<div class="field" data-range={name}>
   <div class="head">
-    <label class="label" for={name}>
-      {label}
-    </label>
-    <output for={name} data-range-value>
-      {value}
+    <label for={name}>{label}</label>
+    <output for={name}>
+      <span data-range-value>{value}</span>
+      <small>{unit}</small>
     </output>
   </div>
-  <input
-    id={name}
-    type="range"
-    min={min}
-    max={max}
-    value={value}
-    style={`--pct: ${fillPercent(value, min, max)}%`}
-    data-range-input
-  />
-  <div class="hints">
+  <div class="slider" style={`--at: ${position(value, min, max)}`} data-range-track>
+    <div class="track">
+      <i></i>
+    </div>
+    {/* Before the drawn thumb, so the thumb paints on top and shows the input's focus. */}
+    <input id={name} type="range" min={min} max={max} value={value} data-range-input />
+    <span class="thumb"></span>
+  </div>
+  <div class="ticks">
     <span data-range-min>{min}</span>
-    <span>min</span>
-    <span aria-hidden="true">·</span>
-    <button type="button" class="rec" data-range-recommend>
-      recommended
+    <span class="rec" hidden={value !== recommended} data-range-is-recommended>
+      Recommended
+    </span>
+    <button type="button" class="link" hidden={value === recommended} data-range-recommend>
+      Reset to {recommended}
     </button>
     <span data-range-max>{max}</span>
   </div>
@@ -48,88 +54,96 @@ const { name, label, min, max, value } = Astro.props;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    margin-bottom: 18px;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  label {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
   }
 
   output {
     font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1;
   }
 
-  /* The filled part of the track follows --pct, set here and by the script. */
-  input {
-    width: 100%;
-    height: 18px;
-    margin: 0 0 8px;
-    background: transparent;
-    -webkit-appearance: none;
-    appearance: none;
-    cursor: pointer;
+  small {
+    margin-left: 8px;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--muted);
   }
 
-  input::-webkit-slider-runnable-track {
-    height: 8px;
-    border-radius: 999px;
-    background: linear-gradient(to right, var(--slider) 0 var(--pct), var(--track) var(--pct) 100%);
+  /* --at is where the value sits, 0 to 1; the thumb's 30 px stays inside the track at both ends. */
+  .slider {
+    position: relative;
+    height: 32px;
   }
 
-  input::-webkit-slider-thumb {
-    width: 18px;
-    height: 18px;
-    margin-top: -5px;
-    border: 0;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow:
-      0 2px 6px rgba(26, 29, 46, 0.18),
-      0 0 0 1px var(--border);
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  input::-moz-range-track {
-    height: 8px;
-    border-radius: 999px;
+  .track {
+    position: absolute;
+    top: 11px;
+    right: 0;
+    left: 0;
+    height: 10px;
+    overflow: hidden;
+    border-radius: 99px;
     background: var(--track);
   }
 
-  input::-moz-range-progress {
-    height: 8px;
-    border-radius: 999px;
-    background: var(--slider);
+  .track i {
+    display: block;
+    width: calc(15px + (100% - 30px) * var(--at));
+    height: 100%;
+    background: var(--brand-ui);
   }
 
-  input::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border: 0;
+  .thumb {
+    position: absolute;
+    top: 1px;
+    left: calc((100% - 30px) * var(--at));
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background: #fff;
     box-shadow:
-      0 2px 6px rgba(26, 29, 46, 0.18),
-      0 0 0 1px var(--border);
+      inset 0 0 0 3px var(--brand-ui),
+      0 2px 6px rgba(0, 0, 0, 0.18);
+    pointer-events: none;
   }
 
-  .hints {
+  input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  input:focus-visible + .thumb {
+    outline: 2.5px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .ticks {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-top: 6px;
     font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-muted);
+    font-size: 13px;
+    color: var(--muted);
   }
 
   .rec {
-    padding: 0;
-    font-family: inherit;
-    font-size: inherit;
-    color: inherit;
-    text-decoration: underline dotted;
-    text-underline-offset: 3px;
-  }
-
-  .rec:hover {
-    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
   }
 </style>

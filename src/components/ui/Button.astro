@@ -3,56 +3,90 @@ import type { HTMLAttributes } from "astro/types";
 
 /** A button, or a link that looks like one when it has an href. Other attributes pass through. */
 type Props = HTMLAttributes<"button"> & {
-  /** "ghost" is outlined; "brand" is filled with the page's brand color. */
-  variant?: "ghost" | "brand";
+  /** "brand" is filled with the site's colour, "soft" sits on the card in a darker cream. */
+  variant?: "brand" | "soft";
+  /** "sm" is the smaller button in lists and status lines. */
+  size?: "md" | "sm";
+  /** Square, for a button that shows only an icon; give it an aria-label. */
+  icon?: boolean;
   href?: string;
 };
 
-const { variant = "ghost", href, class: className, ...attrs } = Astro.props;
+const { variant = "soft", size = "md", icon = false, href, class: className, ...attrs } = Astro.props;
 const Tag = href ? "a" : "button";
 ---
 
-<Tag class:list={["btn", variant, className]} href={href} type={href ? undefined : "button"} {...attrs}>
+<Tag
+  class:list={["btn", variant, size, { square: icon }, className]}
+  href={href}
+  type={href ? undefined : "button"}
+  {...attrs}
+>
   <slot />
 </Tag>
 
 <style>
   .btn {
     display: inline-flex;
+    flex: none;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    height: 46px;
-    padding: 0 20px;
-    border-radius: var(--radius);
-    font-size: 16px;
+    gap: 10px;
+    height: 56px;
+    padding: 0 26px;
+    border-radius: 18px;
+    font-size: 18px;
     font-weight: 600;
-    text-decoration: none;
+    letter-spacing: -0.015em;
+    white-space: nowrap;
     transition:
-      background 0.15s ease,
-      filter 0.15s ease;
+      background 0.15s,
+      transform 0.1s;
   }
 
-  .btn:disabled {
-    cursor: default;
-    opacity: 0.55;
-  }
-
-  .ghost {
-    border: 1px solid var(--border);
-    background: var(--surface);
-  }
-
-  .ghost:not(:disabled):hover {
-    background: var(--hover);
+  .btn:not(:disabled):active {
+    transform: translateY(1px);
   }
 
   .brand {
-    background: var(--brand);
-    color: var(--brand-ink);
+    background: var(--brand-ui);
+    color: var(--brand-ui-ink);
   }
 
   .brand:not(:disabled):hover {
-    filter: brightness(0.94);
+    background: color-mix(in srgb, var(--brand-ui) 86%, var(--ink));
+  }
+
+  .soft {
+    background: var(--sunk);
+    color: var(--ink);
+  }
+
+  .soft:not(:disabled):hover {
+    background: var(--hover);
+  }
+
+  .square {
+    width: 56px;
+    padding: 0;
+  }
+
+  .sm {
+    gap: 6px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: inherit;
+  }
+
+  .sm.square {
+    width: 44px;
+  }
+
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
   }
 </style>

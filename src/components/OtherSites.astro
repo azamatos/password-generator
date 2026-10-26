@@ -1,0 +1,137 @@
+---
+import Logo from "@/components/ui/Logo.astro";
+import { platforms, sites } from "@/data/platforms";
+import { monthYear } from "@/lib/describe";
+
+/** Every site's page as a plain link: how visitors without JavaScript change site, and how search engines find them. */
+interface Props {
+  /** The site whose page this is, marked in the list. */
+  current?: string;
+}
+
+const { current } = Astro.props;
+// The oldest check, so the line is true for every site.
+const checked = monthYear(platforms.map((p) => p.checked).sort()[0]);
+---
+
+<section class="others" id="other-sites" aria-labelledby="other-sites-title">
+  <div class="head">
+    <h2 id="other-sites-title">Passwords for other sites</h2>
+    <span class="count">
+      {sites.length} sites · rules checked {checked}
+    </span>
+  </div>
+  <ul class="grid">
+    {sites.map((site) => (
+      <li>
+        <a href={site.href} aria-current={site.id === current ? "page" : undefined}>
+          <span class="tile">
+            <Logo id={site.id} />
+          </span>
+          <span class="text">
+            <b>{site.name}</b>
+            <span class="summary">{site.summary}</span>
+          </span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .others {
+    margin-top: 72px;
+  }
+
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.035em;
+  }
+
+  .count {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+  }
+
+  a:hover {
+    border-color: var(--line-2);
+    background: var(--hover);
+  }
+
+  a[aria-current="page"] {
+    border-color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--ink);
+  }
+
+  .text {
+    display: grid;
+    min-width: 0;
+  }
+
+  b {
+    font-weight: 500;
+  }
+
+  .summary {
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--muted);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  @media (max-width: 960px) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 700px) {
+    .others {
+      margin-top: 44px;
+    }
+
+    h2 {
+      font-size: 23px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    a {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  }
+</style>

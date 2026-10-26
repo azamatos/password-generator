@@ -2,34 +2,33 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
-import { ANY } from "@/data/platforms";
 
 /** Share images are 1200×630, rendered at build time from the same data as the pages. */
 const WIDTH = 1200;
 const HEIGHT = 630;
 
-// Build-time only, run from the project root. The renderer needs TTF or WOFF, not WOFF2; all three
-// families (Inter Tight, Boldonse, JetBrains Mono) are under the SIL Open Font License.
+// Build-time only, run from the project root. The renderer needs TTF or WOFF, not WOFF2, so these are the WOFF versions
+// of the site's fonts (Latin subsets from @fontsource, SIL Open Font License).
 const file = (path: string) => readFileSync(resolve(process.cwd(), path));
 
 const fonts = [
-  { name: "Inter Tight", data: file("src/og/fonts/InterTight-Regular.woff"), weight: 400 as const },
-  { name: "Inter Tight", data: file("src/og/fonts/InterTight-SemiBold.woff"), weight: 600 as const },
-  { name: "Inter Tight", data: file("src/og/fonts/InterTight-Bold.woff"), weight: 700 as const },
-  { name: "Boldonse", data: file("src/og/fonts/Boldonse-Regular.ttf"), weight: 400 as const },
-  { name: "JetBrains Mono", data: file("src/og/fonts/JetBrainsMono-Medium.ttf"), weight: 500 as const },
+  { name: "Geist", data: file("src/og/fonts/Geist-Regular.woff"), weight: 400 as const },
+  { name: "Geist", data: file("src/og/fonts/Geist-Medium.woff"), weight: 500 as const },
+  { name: "Geist", data: file("src/og/fonts/Geist-SemiBold.woff"), weight: 600 as const },
+  { name: "Space Mono", data: file("src/og/fonts/SpaceMono-Regular.woff"), weight: 400 as const },
+  { name: "Space Mono", data: file("src/og/fonts/SpaceMono-Bold.woff"), weight: 700 as const },
 ];
 
-// Light-theme colors from src/styles/global.css (satori can't read CSS variables); keep them in step.
-const INK = "#1a1d2e";
-const INK_2 = "#3d4163";
-const CREAM = "#fdfaf3";
-const BORDER = "#e2e3ec";
-const TRACK = "#e2e3ec";
-const FAINT = "#666a87";
-const GOOD_TEXT = "#1f7556";
-const CORAL = ANY.color;
-const TONES = { good: "#2a8e6c", fair: "#c79b2e", weak: "#b03b1c" };
+// Light-theme colours from src/styles/global.css (satori can't read CSS variables); keep them in step.
+const INK = "#1d1f2c";
+const INK_2 = "#454a63";
+const CREAM = "#faf5ec";
+const BORDER = "#e8dfcf";
+const TRACK = "#e8dfcf";
+const FAINT = "#666a80";
+const GOOD_TEXT = "#1d7354";
+const SYM = "#c93a15";
+const TONES = { good: "#2a8e6c", fair: "#c79b2e", weak: "#d0405f" };
 
 /** Mixes two hex colors; t is the share of b. */
 function mix(a: string, b: string, t: number): string {
@@ -47,6 +46,10 @@ function mix(a: string, b: string, t: number): string {
 const svgUri = (svg: string) => `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 
 const ICONS = {
+  arrow: (color: string) =>
+    svgUri(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`,
+    ),
   asterisk: (color: string) =>
     svgUri(
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M8 2.5v11M3.2 5.25l9.6 5.5M12.8 5.25l-9.6 5.5" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/></svg>`,
@@ -89,10 +92,9 @@ const h = (type: string, style: Record<string, unknown>, ...children: (Node | st
 });
 
 function titleSize(title: string): number {
-  if (title.length <= 7) return 118;
-  if (title.length <= 10) return 100;
-  if (title.length <= 14) return 82;
-  return 70;
+  if (title.length <= 10) return 116;
+  if (title.length <= 14) return 96;
+  return 78;
 }
 
 function tree(card: ShareCard): Node {
@@ -111,8 +113,9 @@ function tree(card: ShareCard): Node {
 
   const logo = h(
     "div",
-    { alignItems: "center", gap: "10px", fontFamily: "JetBrains Mono", fontSize: "26px", color: INK },
-    h("span", { color: CORAL }, "➜"),
+    { alignItems: "center", gap: "12px", fontFamily: "Space Mono", fontSize: "26px", color: INK },
+    // The fonts' Latin subsets have no ➜, so the arrow is drawn.
+    { type: "img", props: { src: ICONS.arrow(SYM), width: 26, height: 26 } },
     h("span", { color: FAINT }, "~"),
     h("span", {}, "pass.azamatos"),
     h("div", { width: "13px", height: "26px", borderRadius: "2px", background: INK }),
@@ -124,20 +127,16 @@ function tree(card: ShareCard): Node {
     h(
       "div",
       { flexDirection: "column", flex: 1 },
-      h(
-        "div",
-        { fontSize: "20px", fontWeight: 700, letterSpacing: "3px", textTransform: "uppercase", color: eyebrow },
-        card.eyebrow,
-      ),
+      h("div", { fontSize: "26px", fontWeight: 500, color: eyebrow }, card.eyebrow),
       h(
         "div",
         {
-          marginTop: "16px",
-          fontFamily: "Boldonse",
+          marginTop: "10px",
           fontSize: `${titleSize(card.title)}px`,
-          lineHeight: 1.2,
+          fontWeight: 600,
+          lineHeight: 1.05,
           color: INK,
-          letterSpacing: "-1px",
+          letterSpacing: "-0.045em",
         },
         card.title,
       ),
@@ -154,10 +153,8 @@ function tree(card: ShareCard): Node {
               borderRadius: "999px",
               border: `1.5px solid ${tagBorder}`,
               background: "rgba(255,255,255,0.8)",
-              fontSize: "17px",
-              fontWeight: 700,
-              letterSpacing: "1.2px",
-              textTransform: "uppercase",
+              fontSize: "20px",
+              fontWeight: 500,
               color: INK_2,
             },
             tag,
@@ -209,7 +206,7 @@ function tree(card: ShareCard): Node {
     h(
       "div",
       { flexDirection: "column" },
-      h("div", { fontFamily: "JetBrains Mono", fontSize: "38px", color: INK, letterSpacing: "1px" }, sample.text),
+      h("div", { fontFamily: "Space Mono", fontWeight: 700, fontSize: "38px", color: INK }, sample.text),
       bars,
     ),
     h(
@@ -238,7 +235,7 @@ function tree(card: ShareCard): Node {
       padding: `${pad.top}px ${pad.x}px ${pad.bottom}px`,
       backgroundColor: CREAM,
       backgroundImage: `linear-gradient(180deg, ${tint} 0%, ${CREAM} 72%)`,
-      fontFamily: "Inter Tight",
+      fontFamily: "Geist",
     },
     logo,
     hero,

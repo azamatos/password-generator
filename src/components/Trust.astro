@@ -1,0 +1,43 @@
+---
+import Icon from "@/components/ui/Icon.astro";
+---
+
+<section class="card trust">
+  <span class="icon-tile" aria-hidden="true">
+    <Icon name="shield" size={24} />
+  </span>
+  <div>
+    <h2>Made in your browser</h2>
+    <p>Passwords are never sent or saved. Copied ones stay in Recent until you reload or close this tab.</p>
+  </div>
+</section>
+
+<style>
+  .trust {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .icon-tile {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: var(--good-soft);
+    color: var(--good-text);
+  }
+
+  h2 {
+    font-size: 18px;
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 15px;
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+</style>

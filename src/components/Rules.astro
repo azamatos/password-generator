@@ -1,0 +1,183 @@
+---
+import Button from "@/components/ui/Button.astro";
+import Icon from "@/components/ui/Icon.astro";
+import { shortName, type Platform } from "@/data/types";
+import { monthYear } from "@/lib/describe";
+import { checkRules } from "@/lib/password";
+
+/** The site's rules, with its note, its sources and when they were checked. Any site has none, and a way to pick one. */
+interface Props {
+  /** Undefined for "Any site". */
+  platform?: Platform;
+}
+
+const { platform } = Astro.props;
+const lines = platform
+  ? checkRules(platform.rules, "").map((c) => c.label)
+  : ["At least 8 characters", "Any characters, spaces too"];
+const host = (url: string) => new URL(url).hostname.replace(/^www\./, "");
+---
+
+<section class="card rules">
+  <div class="head">
+    <h2>{platform ? `${shortName(platform.name)}’s rules` : "No site rules"}</h2>
+    {platform && (
+      <span class="checked">
+        <Icon name="calendar" size={15} />
+        Checked {monthYear(platform.checked)}
+      </span>
+    )}
+  </div>
+  <ul class="list">
+    {lines.map((line) => (
+      <li>
+        <span class="tick" aria-hidden="true">
+          <Icon name="check" size={14} weight={3} />
+        </span>
+        {line}
+      </li>
+    ))}
+  </ul>
+  {platform?.notes && (
+    <p class="note">
+      <Icon name="info" size={18} />
+      <span>{platform.notes}</span>
+    </p>
+  )}
+  {platform ? (
+    <div class="sources">
+      <h3>Sources</h3>
+      <ul>
+        {platform.sources.map((source) => (
+          <li>
+            <a href={source.url}>
+              <span class="label">{source.label}</span>
+              <span class="host">{host(source.url)}</span>
+              <Icon name="external" size={15} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ) : (
+    <>
+      <p class="pick">Signing up somewhere specific? Pick the site and every password is drawn to pass its rules.</p>
+      <Button href="#other-sites" aria-haspopup="dialog" data-sites-open>
+        <Icon name="search" size={19} />
+        Choose a site
+        <kbd data-shortcut>⌘K</kbd>
+      </Button>
+    </>
+  )}
+</section>
+
+<style>
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .checked {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 99px;
+    background: var(--sunk);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  .list {
+    margin-top: 12px;
+  }
+
+  .list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .list li:last-child {
+    border-bottom: 0;
+  }
+
+  .tick {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--good-soft);
+    color: var(--good-text);
+  }
+
+  .note {
+    display: flex;
+    gap: 12px;
+    margin-top: 6px;
+    padding: 16px;
+    border-radius: 16px;
+    background: var(--sunk);
+    font-size: 15px;
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+
+  .note :global(.icon) {
+    margin-top: 1px;
+    color: var(--muted);
+  }
+
+  .sources {
+    margin-top: 22px;
+  }
+
+  h3 {
+    margin-bottom: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .sources a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .label {
+    text-decoration: underline;
+    text-decoration-color: var(--line-2);
+    text-underline-offset: 4px;
+  }
+
+  .host {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  .sources a :global(.icon) {
+    color: var(--muted);
+  }
+
+  .pick {
+    margin: 16px 0;
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+</style>

@@ -14,12 +14,14 @@ test("Any site: a 16-character password, and New makes another", async ({ page }
 test("GitHub: the classes it requires are on and locked", async ({ page }) => {
   await open(page, "/github/");
   await expect(page.getByText("Meets GitHub's rules")).toBeVisible();
-  for (const name of ["Lowercase letters", "Numbers"]) {
-    const box = page.getByRole("checkbox", { name: new RegExp(`${name}, required by GitHub`) });
+  for (const name of ["Lowercase", "Numbers"]) {
+    const box = page.getByRole("checkbox", { name: new RegExp(`^${name}\\s+Required`) });
     await expect(box).toBeChecked();
     await expect(box).toBeDisabled();
   }
-  await expect(page.getByRole("checkbox", { name: /^Uppercase letters$/ })).toBeEnabled();
+  await expect(page.getByRole("checkbox", { name: "Uppercase", exact: true })).toBeEnabled();
+  await expect(page.getByText("15+ characters may be anything")).toBeVisible();
+  await expect(page.getByRole("link", { name: /GitHub Docs/ })).toHaveAttribute("href", /docs\.github\.com/);
 });
 
 test("PayPal: passwords use only its symbols and stay within 20 characters", async ({ page }) => {
@@ -46,7 +48,7 @@ test("the slider follows the site's limits from page to page", async ({ page }) 
   await switchSite(page, "TikTok");
   await expect(slider).toHaveValue("20");
   await expect.poll(() => password(page).then((p) => p.length)).toBe(20);
-  await page.getByRole("button", { name: "recommended" }).click();
+  await page.getByRole("button", { name: "Reset to 16" }).click();
   await expect(slider).toHaveValue("16");
 });
 
@@ -62,7 +64,7 @@ test("choices carry over to another site", async ({ page }) => {
 test("passphrases, and the sites they don't fit", async ({ page }) => {
   await open(page, "/");
   await page.getByRole("radio", { name: "Passphrase" }).check();
-  await expect.poll(() => password(page)).toMatch(/^[a-z]+(-[a-z]+){4}$/);
+  await expect.poll(() => password(page)).toMatch(/^(?=[^\d]*\d[^\d]*$)([a-z]+\d?-){4}[a-z]+\d?$/);
   await expect(page.getByText("5 words")).toBeVisible();
 
   // TikTok's 20 characters are too few for 4 words.
@@ -105,7 +107,7 @@ test("copied passwords go to Recent, masked, and only for this tab", async ({ pa
   expect(stored).not.toContain(value);
 
   // Kept across client-side navigation, gone after a reload.
-  await page.locator('nav a[href="/health/"]').click();
+  await page.locator('nav[aria-label="Main"] a[href="/health/"]').click();
   await expect(page.getByRole("button", { name: "Recent, 1 copied" })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("button", { name: "Recent", exact: true })).toBeVisible();
@@ -162,6 +164,9 @@ test.describe("before the script runs", () => {
     const message = page.locator("[data-output] noscript");
     await expect(message).toBeVisible();
     expect(await message.evaluate((e) => e.textContent)).toBe("Turn on JavaScript to generate a password.");
+    // "Change site" leads to the list of every site instead of opening the switcher.
+    await expect(page.getByRole("link", { name: /Change site/ })).toHaveAttribute("href", "#other-sites");
+    await expect(page.getByRole("region", { name: "Passwords for other sites" }).getByRole("link")).toHaveCount(17);
     await context.close();
   });
 

@@ -1,70 +1,138 @@
-/* Colors from the original design. Dark versions keep the same roles. */
+/*
+ * The "Pass Warm" design: light first on a warm cream, warm dark second. <html data-theme> holds the theme in use, set
+ * before the first paint by the script in Base.astro and kept by src/scripts/theme.ts. Without JavaScript there's no
+ * data-theme, and the system's setting decides, which is why the dark tokens appear twice.
+
+ */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
-  --bg: #fdfaf3;
-  --surface: #ffffff;
-  --pill: #f0f0f5;
-  --tile: #f7f0e1;
-  --hover: #f0eee9;
-  --border: #e2e3ec;
-  --border-strong: #c8cad9;
-  --text: #1a1d2e;
-  --text-2: #3d4163;
-  --text-muted: #565a7e;
-  --text-faint: #666a87;
-  --on: #1a1d2e;
-  --on-text: #ffffff;
-  --track: #e2e3ec;
+  --bg: #faf5ec;
+  --surface: #fff;
+  --raise: #fff;
+  --sunk: #f4eee3;
+  --hover: #efe8db;
+  --line: #e8dfcf;
+  --line-2: #d4c9b5;
+  --ink: #1d1f2c;
+  --ink-2: #454a63;
+  --muted: #666a80;
+  --sw-off: #958d7a;
+  --track: #e8dfcf;
+  /* Digits blue and symbols red, so the kinds of character stand apart, and 0 apart from O. */
+  --digit: #2b59c3;
+  --sym: #c93a15;
   --good: #2a8e6c;
-  --good-text: #1f7556;
-  --good-soft: #d2f1e5;
+  --good-text: #1d7354;
+  --good-soft: #dcf2e7;
   --fair: #c79b2e;
-  --fair-soft: #fff0c4;
-  --weak: #b03b1c;
-  --weak-soft: #ffd9cd;
-  --coral: #ff6b4d;
-  --coral-ink: #2a0e07;
+  --fair-text: #86620e;
+  --fair-soft: #fbefcb;
+  --weak: #d0405f;
+  --weak-text: #ae2a48;
+  --weak-soft: #fbdfe5;
+  --done-bg: #1d7354;
+  --done-ink: #fff;
   --focus: #2b59c3;
-  --shadow: 0 1px 2px rgba(26, 29, 46, 0.04);
-  --backdrop: rgba(26, 29, 46, 0.2);
+  --backdrop: rgba(40, 30, 15, 0.3);
+  --shadow: 0 1px 2px rgba(70, 50, 20, 0.05), 0 14px 36px -18px rgba(70, 50, 20, 0.22);
+  --lift: 0 1px 2px rgba(60, 40, 10, 0.12), 0 1px 1px rgba(60, 40, 10, 0.04);
+  --popup: 0 0 0 1px var(--line), 0 28px 70px -20px rgba(40, 30, 10, 0.45);
 
-  /* Set per platform from its brand color (App.astro); coral elsewhere. */
-  --brand: var(--coral);
-  --brand-ink: var(--coral-ink);
-  --slider: var(--on);
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+}
 
-  --radius-sm: 8px;
-  --radius: 12px;
-  --radius-lg: 18px;
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #15130f;
+  --surface: #1f1c17;
+  --raise: #3a352c;
+  --sunk: #28241d;
+  --hover: #302b23;
+  --line: #37322a;
+  --line-2: #4f483c;
+  --ink: #f4efe4;
+  --ink-2: #d8d1c2;
+  --muted: #aaa392;
+  --sw-off: #6f685a;
+  --track: #3a352c;
+  --digit: #94b4ff;
+  --sym: #ff8f73;
+  --good: #5fd3a6;
+  --good-text: #6fdcb1;
+  --good-soft: #173a2d;
+  --fair: #e8c25a;
+  --fair-text: #ecc967;
+  --fair-soft: #3a3018;
+  --weak: #ff7d98;
+  --weak-text: #ff94aa;
+  --weak-soft: #3f1a24;
+  --done-bg: #5fd3a6;
+  --done-ink: #0d2a1f;
+  --focus: #8fb2ff;
+  --backdrop: rgba(0, 0, 0, 0.55);
+  --shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.7);
+  --lift: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --popup: 0 0 0 1px var(--line), 0 28px 70px -20px rgba(0, 0, 0, 0.7);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14130f;
-    --surface: #1d1b16;
-    --pill: #2a2721;
-    --tile: #2f2b23;
-    --hover: #26231d;
-    --border: #34302a;
-    --border-strong: #4d473c;
-    --text: #f3eee2;
-    --text-2: #dcd5c6;
-    --text-muted: #bfb8a8;
-    --text-faint: #a8a190;
-    --on: #f3eee2;
-    --on-text: #1a1d2e;
-    --track: #3a362e;
+  :root:not([data-theme]) {
+    color-scheme: dark;
+
+    --bg: #15130f;
+    --surface: #1f1c17;
+    --raise: #3a352c;
+    --sunk: #28241d;
+    --hover: #302b23;
+    --line: #37322a;
+    --line-2: #4f483c;
+    --ink: #f4efe4;
+    --ink-2: #d8d1c2;
+    --muted: #aaa392;
+    --sw-off: #6f685a;
+    --track: #3a352c;
+    --digit: #94b4ff;
+    --sym: #ff8f73;
     --good: #5fd3a6;
     --good-text: #6fdcb1;
     --good-soft: #173a2d;
     --fair: #e8c25a;
+    --fair-text: #ecc967;
     --fair-soft: #3a3018;
-    --weak: #ff8a6e;
-    --weak-soft: #3d1f17;
+    --weak: #ff7d98;
+    --weak-text: #ff94aa;
+    --weak-soft: #3f1a24;
+    --done-bg: #5fd3a6;
+    --done-ink: #0d2a1f;
     --focus: #8fb2ff;
-    --shadow: none;
-    --backdrop: rgba(0, 0, 0, 0.5);
+    --backdrop: rgba(0, 0, 0, 0.55);
+    --shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.7);
+    --lift: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --popup: 0 0 0 1px var(--line), 0 28px 70px -20px rgba(0, 0, 0, 0.7);
+  }
+}
+
+/*
+ * The site's colour, set on <main> by Base.astro (brandStyle in src/lib/color.ts): --brand for the banner as it is, and
+ * --brand-ui for buttons, sliders and switches, shifted until it holds 3:1 on the card in each theme.
+ */
+main {
+  --brand-ui: var(--brand-ui-light);
+  --brand-ui-ink: var(--brand-ui-ink-light);
+}
+
+:root[data-theme="dark"] main {
+  --brand-ui: var(--brand-ui-dark);
+  --brand-ui-ink: var(--brand-ui-ink-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) main {
+    --brand-ui: var(--brand-ui-dark);
+    --brand-ui-ink: var(--brand-ui-ink-dark);
   }
 }
 
@@ -77,7 +145,7 @@
 }
 
 html {
-  /* Room for a scrollbar on every page, so the layout doesn't shift between pages or when Recent locks scrolling. */
+  /* Room for a scrollbar on every page, so the layout doesn't shift between pages or when a dialog locks scrolling. */
   scrollbar-gutter: stable;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -87,17 +155,18 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--bg);
-  color: var(--text);
+  color: var(--ink);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.5;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 a {
   color: inherit;
+  text-decoration: none;
 }
 
 button,
@@ -105,12 +174,17 @@ input {
   font: inherit;
   color: inherit;
   letter-spacing: inherit;
+  border: 0;
+  background: none;
 }
 
 button {
   cursor: pointer;
-  border: 0;
-  background: none;
+}
+
+ul,
+ol {
+  list-style: none;
 }
 
 img,
@@ -119,9 +193,23 @@ svg {
   max-width: 100%;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 :focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 2.5px solid var(--focus);
   outline-offset: 2px;
+}
+
+kbd {
+  padding: 5px 7px;
+  border-radius: 7px;
+  background: var(--sunk);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1;
 }
 
 .sr-only {
@@ -138,54 +226,77 @@ svg {
 
 .wrap {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1184px;
   margin: 0 auto;
-  padding: 0 28px;
+  padding: 0 48px;
 }
 
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* A card on the cream: the options, the rules, the trust note, the /health results. */
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  padding: 30px;
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
+  background: var(--surface);
   box-shadow: var(--shadow);
 }
 
-.label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-faint);
+.card h2 {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
 }
 
-.icon {
-  width: 15px;
-  height: 15px;
-  flex: none;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+/* An underlined text button or link, such as "Reset to 16" or "Clear all". */
+.link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 3px;
 }
 
-.mono-tile {
+.link:hover {
+  color: var(--ink);
+}
+
+/* A site's logo on a white tile, in the switcher, the list of sites and Recent. */
+.tile {
   display: grid;
-  place-items: center;
   flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: var(--tile);
-  color: var(--text-2);
-  font-family: var(--font-display);
-  font-size: 11px;
-  line-height: 1;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #fff;
+  color: #c93a15;
+  box-shadow: inset 0 0 0 1px rgba(60, 40, 10, 0.12);
 }
 
-@media (max-width: 760px) {
+.tile img,
+.tile svg {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+@media (max-width: 700px) {
   .wrap {
     padding: 0 16px;
+  }
+
+  .card {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .card h2 {
+    font-size: 20px;
   }
 }
 

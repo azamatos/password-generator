@@ -16,7 +16,7 @@ test("switching pages makes no request once they're loaded", async ({ page }) =>
   const requests: string[] = [];
   page.on("request", (r) => isPage(r.url()) && requests.push(r.url()));
   await tab(page, "/health/").click();
-  await expect(h1(page)).toHaveText("How strong is yours?");
+  await expect(h1(page)).toHaveText("How long would it take to guess?");
   await expect(tab(page, "/health/")).toHaveAttribute("aria-current", "page");
   await expect(page.locator("[data-health]")).toHaveAttribute("data-mounted", "");
   await page.goBack();
@@ -35,6 +35,6 @@ test("a page that failed to load ahead still opens", async ({ page }) => {
   await open(page, "/");
   await expect.poll(() => failed).toBe(true);
   await tab(page, "/health/").click();
-  await expect(h1(page)).toHaveText("How strong is yours?");
+  await expect(h1(page)).toHaveText("How long would it take to guess?");
   await expect(page).toHaveURL(/\/health\/$/);
 });

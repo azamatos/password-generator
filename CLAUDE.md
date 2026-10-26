@@ -8,7 +8,9 @@ pass.azamatos.com is a static site that generates passwords which pass a chosen 
 
 It is deployed on Cloudflare Pages as the static `dist/` folder. Pages injects Cloudflare Web Analytics at build time, and `public/_redirects` sends old URLs (the old vault and per-platform health pages, and the dropped Reddit page) to current ones with 301s.
 
-`public/_headers` sets a strict CSP: scripts come only from this site and Cloudflare's beacon, and pages may connect only to this site, Have I Been Pwned and Cloudflare's analytics. Astro is set never to inline scripts, and `src/integrations/csp-check.ts` fails the build when a page has an inline script whose hash isn't in `script-src`. A new external host needs a CSP change first.
+`public/_headers` sets a strict CSP: scripts come only from this site and Cloudflare's beacon, and pages may connect only to this site, Have I Been Pwned and Cloudflare's analytics. Astro is set never to inline scripts, and `src/integrations/csp-check.ts` fails the build when a page has an inline script whose hash isn't in `script-src`. The one hashed script is the theme script in `Base.astro`: when you change it, the build prints the new hash for `_headers`. A new external host needs a CSP change first.
+
+The design is "Pass Warm" from the Claude Design project "Password generator" (https://claude.ai/design/p/019dfc24-6122-76b0-8e2e-43122101cdb7, file `Pass Warm.html`, built from `docs/design-brief.md`): a warm cream, each site's own colour on its banner and controls, Geist and Space Mono, and a warm dark theme.
 
 ## Commands
 
@@ -46,11 +48,11 @@ Before calling a change done, run `pnpm test && pnpm lint && pnpm check`, and `p
 
 - **Components hold markup and styles; `src/scripts/` holds behavior.** An interactive component ends with `<script>import "@/scripts/<name>";</script>`. The script calls `mount("[data-<name>]", setup)` from `scripts/dom.ts`, which runs setup once per element, now and after client-router navigations.
 - **Scripts find elements with `find(root, "[data-…]")`**, which throws if the markup and the script disagree. Keep the `data-*` hooks when editing markup.
-- **Shared pieces live in `src/components/ui/`:** `Button` (ghost or brand; renders a link when given `href`), `Switch`, `StrengthBars` (filled by `scripts/meter.ts`) and `RangeField` (driven by `scripts/range.ts` `bindRange`). Reuse them instead of restyling buttons or sliders. A parent only adds layout around them, through `:global(.class)` on a class it passes in.
+- **Shared pieces live in `src/components/ui/`:** `Button` (brand or soft; `sm`; `icon` for a square icon button; a link when given `href`), `Icon` (the design's line icons), `Logo` (a site's logo, or the asterisk for Any site), `Switch` (a row with its label, a hint and the switch), `Meter` (bars, level and details; `scripts/meter.ts` fills it), `RangeField` (driven by `scripts/range.ts` `bindRange`) and `Dialog` (the switcher's centred panel and Recent's corner panel). Reuse them instead of restyling buttons, sliders or dialogs. A parent only adds layout around them, through `:global(.class)` on a class it passes in.
 
-**Client router and persistence.** `Base.astro` includes `<ClientRouter />`, and `Header.astro` and `Sidebar.astro` use `transition:persist`:
+**Client router and persistence.** `Base.astro` includes `<ClientRouter />`, and `Header.astro` uses `transition:persist`:
 
-- Their DOM and listeners survive navigation, so on each `astro:after-swap` they only update `aria-current`, the tab pill and the sidebar's current item.
+- The header holds the tabs, Recent, the theme switch and the site switcher (⌘K, or "Change site" on a generator page). Its DOM and listeners survive navigation, so on each `astro:after-swap` it only marks the current tab and site. It closes its dialogs before a page changes.
 - Page content (the generator, `/health`) is swapped on each navigation and set up again.
 - JS module state also survives navigation:
   - `src/scripts/generator.ts` keeps the user's choices in `prefs`, so they carry over between platforms.
@@ -61,7 +63,7 @@ Before calling a change done, run `pnpm test && pnpm lint && pnpm check`, and `p
 
 1. `src/data/platforms.json` holds each site's `PasswordRules`, plus `sources`, a `checked` date and optional `notes` explaining a rule. `src/data/platforms.ts` loads it and validates it with a zod schema (from `astro/zod`). The schema runs at build and test time only, and turns `"symbols": { "except": "#" }` into the default symbol set minus those characters.
 2. `src/pages/[platform]/index.astro` (`getStaticPaths`) renders `App.astro`.
-3. `App.astro` renders `Banner`, `Sidebar` and `Generator`. It sets `--brand`, `--brand-ink` and `--slider` inline from the platform color; `lib/color.ts` `inkFor` picks readable text, and a test enforces 4.5:1 contrast.
+3. `App.astro` renders the `Banner` (the site's colour, logo, name and rule tags), the `Generator` (the password card and the options card) with `Rules` and `Trust` beside it, and `OtherSites`, the list of every site as plain links. Each page passes its site's colour to `Base.astro`, which sets it on `<main>` with `brandStyle` (`lib/color.ts`): the banner uses the colour as it is, and buttons, sliders and switches use it shifted until it holds 3:1 on the card in each theme. A test checks both for every site.
 4. `Generator.astro` server-renders the initial state with `plan()` and passes the rules to the script as `data-rules` JSON.
 5. `src/scripts/generator.ts` runs `plan()`, then `generate()`, then `entropyBits()`, and updates the DOM imperatively.
 
@@ -79,7 +81,7 @@ The server render and the script both start from `DEFAULT_PASSWORD_OPTIONS` / `D
 - **`random.ts` `randomInt`** uses `crypto.getRandomValues` with rejection sampling, so there is no modulo bias. Never use `Math.random`.
 - **`passphrase.ts` `planPassphrase`** can return `unsupported` with a reason, e.g. when a 20-character limit is too short for 4 words. The EFF wordlist (`lib/wordlist/`) is a `?raw` dynamic import, loaded the first time Passphrase is chosen.
 - **Strength:** `lib/strength.ts` turns exact bits (`meterForBits`) or zxcvbn's 0–4 score (`meterForScore`) into the meter's label, bars and tone. The generator, `/health` and the share images all use it.
-- **Describing rules:** `lib/describe.ts` has every way rules become text: the sidebar summary, banner tags, share-image tags and chip tooltips.
+- **Describing rules:** `lib/describe.ts` has every way rules become text: the one-line summary in the switcher and the list of sites, the banner's tags, the notes under the character tiles, share-image tags and `monthYear` for "Checked Oct 2026".
 - **"Any site"** is `ANY` in `data/platforms.ts` (id, name, color, and `ANY_SITE` from `lib/password.ts` as its rules). `App.astro` treats it like any other site, and the generator gets an `anySite` flag.
 
 **`/health`** (`src/pages/health.astro`, behavior in `src/scripts/health.ts`):
@@ -90,15 +92,15 @@ The server render and the script both start from `DEFAULT_PASSWORD_OPTIONS` / `D
 **Share images.** `src/pages/og/[slug].png.ts` renders one 1200×630 PNG per page at build time with satori and resvg, from `src/og/cards.ts`, using the same platform data, so images can't go stale.
 
 - satori needs TTF or WOFF (not WOFF2), which is why `src/og/fonts/` duplicates the site fonts.
-- The colors in `src/og/render.ts` are copied from `src/styles/global.css`. Change both together.
+- The colours and fonts in `src/og/render.ts` are copied from `src/styles/global.css` and the site's fonts. Change both together.
 
-**Styling.** Design tokens are CSS custom properties in `src/styles/global.css`, with dark mode via `prefers-color-scheme`. Fonts are local WOFF2 files loaded through Astro's fonts API (`astro.config.mjs`) as `--font-sans`, `--font-mono` and `--font-display`. The import alias `@/` maps to `src/`.
+**Styling.** Design tokens are CSS custom properties in `src/styles/global.css`, light first on a warm cream. `<html data-theme>` always holds the theme in use: the inline script in `Base.astro` sets it before the first paint, and `scripts/theme.ts` keeps it after client-router swaps, when the system's setting changes and when the System / Light / Dark switch is used (the choice is kept in `localStorage`). Without JavaScript there's no attribute and the system's setting decides, which is why the dark tokens appear twice. Fonts are Latin subsets of Geist (400, 500, 600) and Space Mono (400, 700), local WOFF2 loaded through Astro's fonts API (`astro.config.mjs`) as `--font-sans` and `--font-mono`. The import alias `@/` maps to `src/`.
 
 ## Adding or changing a platform
 
 1. Edit `src/data/platforms.json`: rules, at least one source, `checked: "YYYY-MM"`. When sources disagree, use the strictest compatible rule and say why in `notes`. A typo or impossible rule fails `pnpm test` and `pnpm build` with the field named.
-2. Add `public/icons/<id>.svg`. A test fails without it.
-3. Nothing else to wire up. `pnpm test` checks that 1,000 generated passwords pass the new rules, and that passphrases either pass or explain why not. The page, sidebar entry and share image are generated automatically.
+2. Add `public/icons/<id>.svg`, and a `color` whose white or dark text reads at 4.5:1 (a test checks it). A test fails without the logo.
+3. Nothing else to wire up. `pnpm test` checks that 1,000 generated passwords pass the new rules, and that passphrases either pass or explain why not. The page, its entries in the switcher and the list of sites, and the share image are generated automatically.
 4. When removing or renaming a platform, add a 301 to `public/_redirects`.
 
 ## Conventions

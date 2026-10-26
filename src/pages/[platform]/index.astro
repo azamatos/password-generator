@@ -21,6 +21,7 @@ const rules = ruleTags(platform.rules).join(", ").toLowerCase();
   title={`${platform.name} Password Generator · pass.azamatos`}
   description={`Generate a ${platform.name} password that passes its rules (${rules}). Made in your browser, never sent.`}
   ogImage={`og/${platform.id}.png`}
+  brand={platform.color}
 >
   <App platform={platform} />
 </Base>

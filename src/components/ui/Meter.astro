@@ -1,0 +1,103 @@
+---
+import type { Meter } from "@/lib/strength";
+
+/**
+ * The strength meter: five bars, the level in its tone, and details such as "16 characters · 103 bits". Filled from
+ * `meter` when given; scripts update it with showMeter (src/scripts/meter.ts) and through data-details.
+ */
+interface Props {
+  meter?: Meter;
+  details?: string;
+}
+
+const { meter, details = "" } = Astro.props;
+---
+
+<div class="meter" data-meter data-tone={meter?.tone}>
+  <div class="bars" aria-hidden="true" data-bars>
+    {Array.from({ length: 5 }, (_, i) => (
+      <i class:list={{ on: meter && i < meter.bars }} />
+    ))}
+  </div>
+  <p class="line">
+    <b data-level>{meter?.label ?? "—"}</b>
+    <span data-details>{details}</span>
+  </p>
+</div>
+
+<style>
+  .meter {
+    display: grid;
+    flex: 1;
+    gap: 10px;
+    min-width: 0;
+    --tone: var(--good);
+    --tone-text: var(--good-text);
+  }
+
+  .meter[data-tone="fair"] {
+    --tone: var(--fair);
+    --tone-text: var(--fair-text);
+  }
+
+  .meter[data-tone="weak"] {
+    --tone: var(--weak);
+    --tone-text: var(--weak-text);
+  }
+
+  .bars {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    max-width: 340px;
+  }
+
+  .bars i {
+    height: 10px;
+    border-radius: 99px;
+    background: var(--track);
+    transition: background 0.25s ease;
+  }
+
+  .bars i.on {
+    background: var(--tone);
+  }
+
+  .line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+  }
+
+  b {
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--tone-text);
+  }
+
+  .meter:not([data-tone]) b {
+    color: var(--muted);
+  }
+
+  span {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 700px) {
+    .bars {
+      max-width: none;
+    }
+
+    b {
+      font-size: 19px;
+    }
+
+    span {
+      font-size: 13px;
+    }
+  }
+</style>

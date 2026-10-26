@@ -4,37 +4,43 @@ import { open, password, stubClipboard, tabTo } from "./helpers";
 test("⌘K or Ctrl+K searches the sites, and Enter opens the first match", async ({ page }) => {
   await open(page, "/");
   await page.keyboard.press("ControlOrMeta+k");
-  const search = page.getByRole("searchbox", { name: "Search platforms" });
+  const dialog = page.getByRole("dialog", { name: "Choose a site" });
+  const search = dialog.getByRole("searchbox", { name: "Search sites" });
   await expect(search).toBeFocused();
   await page.keyboard.type("pay");
-  await expect(page.locator("aside li:not([hidden])")).toHaveText([/PayPal/]);
+  await expect(dialog.getByRole("link")).toHaveText([/PayPal/]);
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL("/paypal/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("PayPal");
+  await expect(dialog).toBeHidden();
 
+  // The first Escape clears the search, the second closes the switcher.
+  await page.keyboard.press("ControlOrMeta+k");
   await search.fill("nothing like this");
-  await expect(page.getByText("No platform matches.")).toBeVisible();
+  await expect(dialog.getByText("No site called “nothing like this”.", { exact: false })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(search).toHaveValue("");
-  await expect(page.getByText("No platform matches.")).toBeHidden();
+  await expect(dialog.getByText("No site called")).toBeHidden();
+  await expect(dialog.getByRole("link", { name: /PayPal/ })).toHaveAttribute("aria-current", "page");
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
 });
 
 test("the generator works from the keyboard", async ({ page, browserName }) => {
   await stubClipboard(page, true);
   await open(page, "/");
   // In page order: Firefox leaves the page after the last stop instead of starting over.
+  await tabTo(page, browserName, page.getByRole("button", { name: "Copy", exact: true }));
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: "Copied", exact: true })).toBeVisible();
 
   const passphrase = page.getByRole("radio", { name: "Passphrase" });
   await tabTo(page, browserName, page.getByRole("radio", { name: "Password" }));
   await page.keyboard.press("ArrowRight");
   await expect(passphrase).toBeChecked();
-  await expect.poll(() => password(page)).toMatch(/^[a-z]+(-[a-z]+){4}$/);
+  await expect.poll(() => password(page)).toMatch(/^(?=[^\d]*\d[^\d]*$)([a-z]+\d?-){4}[a-z]+\d?$/);
   await page.keyboard.press("ArrowLeft");
   await expect.poll(() => password(page).then((p) => p.length)).toBe(16);
-
-  await tabTo(page, browserName, page.getByRole("button", { name: "Copy", exact: true }));
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("button", { name: "Copied", exact: true })).toBeVisible();
 
   const slider = page.getByRole("slider", { name: "Length" });
   await tabTo(page, browserName, slider);

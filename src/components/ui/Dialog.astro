@@ -1,0 +1,84 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+/**
+ * A modal dialog's shell: "center" sits under the header in the middle (the site switcher), "corner" drops from the
+ * header's right end with no backdrop (Recent). src/scripts/header.ts closes any dialog on a click outside it and
+ * before the page changes.
+ */
+type Props = HTMLAttributes<"dialog"> & {
+  place?: "center" | "corner";
+};
+
+const { place = "center", class: className, ...attrs } = Astro.props;
+---
+
+<dialog class:list={["dialog", place, className]} data-dialog {...attrs}>
+  <slot />
+</dialog>
+
+<style>
+  .dialog {
+    max-height: calc(100% - 112px);
+    overflow: hidden;
+    border: 0;
+    border-radius: 24px;
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--popup);
+    opacity: 0;
+    transform: translateY(-6px);
+    transition:
+      opacity 140ms ease,
+      transform 140ms ease,
+      display 140ms allow-discrete,
+      overlay 140ms allow-discrete;
+  }
+
+  .dialog[open] {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    .dialog[open] {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+
+  .center {
+    width: min(560px, calc(100% - 24px));
+    margin: 96px auto auto;
+  }
+
+  .center::backdrop {
+    background: var(--backdrop);
+  }
+
+  /* Lines up with the header's right end, as the Recent button does. */
+  .corner {
+    width: 400px;
+    margin: 80px max(8px, calc((100% - 1184px) / 2 + 48px)) auto auto;
+    border-radius: 22px;
+  }
+
+  .corner::backdrop {
+    background: transparent;
+  }
+
+  /* Keep the page still behind the dialog. The scrollbar gutter is always reserved (global.css), so nothing shifts. */
+  :global(html:has(.dialog.center[open])) {
+    overflow: hidden;
+  }
+
+  @media (max-width: 700px) {
+    .center,
+    .corner {
+      width: calc(100% - 16px);
+      margin: 64px auto auto;
+    }
+  }
+</style>

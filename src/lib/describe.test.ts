@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { platforms } from "@/data/platforms";
-import { chipText, ruleTags, shareTags, shortSummary } from "./describe";
+import { bannerTags, classNote, monthYear, ruleTags, shareTags, shortSummary } from "./describe";
 
 const byId = Object.fromEntries(platforms.map((p) => [p.id, p]));
 
@@ -22,16 +22,39 @@ describe("ruleTags", () => {
   });
 });
 
-describe("chipText", () => {
-  const p = { locked: ["digit" as const], unavailable: ["symbol" as const] };
+describe("classNote", () => {
+  const p = { locked: ["digit" as const], unavailable: ["upper" as const] };
 
-  it("keeps the base title, whatever it contains, and says why a chip is fixed", () => {
-    expect(chipText("Numbers", "digit", p, "GitHub")).toEqual({
-      title: "Numbers (required by GitHub)",
-      state: ", required by GitHub",
-    });
-    expect(chipText("Symbols: !#$:", "symbol", p, "X").title).toBe("Symbols: !#$: (not accepted by X)");
-    expect(chipText("Lowercase letters", "lower", p, "X")).toEqual({ title: "Lowercase letters", state: "" });
+  it("says why a tile can't be switched, or which symbols the site takes", () => {
+    expect(classNote("digit", p, byId.github.rules)).toBe("Required");
+    expect(classNote("upper", p, byId.github.rules)).toBe("Not allowed");
+    expect(classNote("lower", p, byId.github.rules)).toBe("");
+    expect(classNote("symbol", p, byId.tiktok.rules)).toBe("Only !#$%&@");
+    expect(classNote("symbol", p, byId.spotify.rules)).toBe("No #");
+    expect(classNote("symbol", p, byId.github.rules)).toBe("");
+  });
+});
+
+describe("bannerTags", () => {
+  it("goes from the length to the details", () => {
+    expect(bannerTags(byId.github.rules)).toEqual(["8+ characters", "Lowercase", "Number"]);
+    expect(bannerTags(byId.paypal.rules)).toEqual([
+      "8–20 characters",
+      "Letter",
+      "Number or symbol",
+      "No 4 in a row",
+      "Symbols !@#$%^&*()",
+    ]);
+    expect(bannerTags(byId.microsoft.rules)).toEqual(["8–127 characters", "2 of 4 types"]);
+    expect(bannerTags(byId.netflix.rules)).toEqual(["6–60 characters", "No ~"]);
+    expect(bannerTags(byId.google.rules)).toEqual(["8+ characters", "Any characters", "Spaces OK"]);
+  });
+});
+
+describe("monthYear", () => {
+  it("names the month", () => {
+    expect(monthYear("2026-10")).toBe("Oct 2026");
+    expect(monthYear("2027-01")).toBe("Jan 2027");
   });
 });
 

@@ -1,0 +1,27 @@
+---
+import Icon from "./Icon.astro";
+
+/** A site's logo from public/icons, or the asterisk for Any site. Decorative: the site's name is always next to it. */
+interface Props {
+  id: string;
+  class?: string;
+  /** Load it straight away, for a logo near the top of the page. */
+  eager?: boolean;
+}
+
+const { id, class: className, eager = false } = Astro.props;
+---
+
+{id === "any" ? (
+  <Icon name="asterisk" weight={2.8} class={className} />
+) : (
+  <img
+    class:list={["logo", className]}
+    src={`/icons/${id}.svg`}
+    alt=""
+    width="22"
+    height="22"
+    loading={eager ? undefined : "lazy"}
+    fetchpriority={eager ? "high" : undefined}
+  />
+)}

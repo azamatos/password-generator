@@ -29,36 +29,32 @@ export default defineConfig({
     open: true,
   },
 
+  // Geist for text and Space Mono for passwords, values and the wordmark: Latin subsets from @fontsource (SIL Open Font
+  // License), about 72 KB for all five.
   fonts: [
     {
       provider: fontProviders.local(),
-      name: "Inter Tight",
+      name: "Geist",
       cssVariable: "--font-sans",
-      fallbacks: ["sans-serif"],
+      fallbacks: ["system-ui", "sans-serif"],
       options: {
         variants: [
-          { src: ["./src/assets/fonts/InterTight-Regular.woff2"], weight: 400, style: "normal" },
-          { src: ["./src/assets/fonts/InterTight-Medium.woff2"], weight: 500, style: "normal" },
-          { src: ["./src/assets/fonts/InterTight-SemiBold.woff2"], weight: 600, style: "normal" },
+          { src: ["./src/assets/fonts/Geist-Regular.woff2"], weight: 400, style: "normal" },
+          { src: ["./src/assets/fonts/Geist-Medium.woff2"], weight: 500, style: "normal" },
+          { src: ["./src/assets/fonts/Geist-SemiBold.woff2"], weight: 600, style: "normal" },
         ],
       },
     },
     {
       provider: fontProviders.local(),
-      name: "JetBrains Mono",
+      name: "Space Mono",
       cssVariable: "--font-mono",
-      fallbacks: ["monospace"],
+      fallbacks: ["ui-monospace", "monospace"],
       options: {
-        variants: [{ src: ["./src/assets/fonts/JetBrainsMono-Medium.woff2"], weight: 500, style: "normal" }],
-      },
-    },
-    {
-      provider: fontProviders.local(),
-      name: "Boldonse",
-      cssVariable: "--font-display",
-      fallbacks: ["sans-serif"],
-      options: {
-        variants: [{ src: ["./src/assets/fonts/Boldonse-Regular.woff2"], weight: 400, style: "normal" }],
+        variants: [
+          { src: ["./src/assets/fonts/SpaceMono-Regular.woff2"], weight: 400, style: "normal" },
+          { src: ["./src/assets/fonts/SpaceMono-Bold.woff2"], weight: 700, style: "normal" },
+        ],
       },
     },
   ],

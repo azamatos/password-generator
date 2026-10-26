@@ -1,12 +1,13 @@
-// The generator card and its controls (src/components/Generator.astro). All the rules logic is in src/lib;
-// this file reads the controls into `prefs`, asks lib for a plan, and shows the result.
+// The password card and the options card (src/components/Generator.astro). All the rules logic is in src/lib; this
+// file reads the controls into `prefs`, asks lib for a plan, and shows the result.
 import type { CharClass } from "@/lib/charsets";
-import { chipText } from "@/lib/describe";
+import { classNote } from "@/lib/describe";
 import {
   DEFAULT_PASSPHRASE_OPTIONS,
   generatePassphrase,
   passphraseBits,
   planPassphrase,
+  SEPARATORS,
   type PassphraseOptions,
   type Separator,
 } from "@/lib/passphrase";
@@ -37,30 +38,52 @@ const prefs: { mode: Mode; password: PasswordOptions; passphrase: PassphraseOpti
 
 let wordlist: string[] | null = null;
 
+/** The password, with runs of digits and of symbols wrapped so Generator.astro can colour them. */
+function marked(value: string): (string | HTMLSpanElement)[] {
+  return value
+    .split(/(\d+|[^A-Za-z\d ]+)/)
+    .filter(Boolean)
+    .map((part) => {
+      if (/^[A-Za-z ]+$/.test(part)) return part;
+      const span = document.createElement("span");
+      span.className = /^\d/.test(part) ? "digit" : "symbol";
+      span.textContent = part;
+      return span;
+    });
+}
+
+const apple = /Mac|iPhone|iPad/.test(navigator.userAgent);
+
 mount("[data-generator]", (root) => {
   const rules: PasswordRules = JSON.parse(root.dataset.rules!);
   const site = root.dataset.site!;
-  // "X" rather than "X (Twitter)", for "required by X".
+  const id = root.dataset.id!;
+  // "X" rather than "X (Twitter)", for "Locked by X".
   const owner = root.dataset.owner!;
   const anySite = "anySite" in root.dataset;
 
+  const kind = find(root, "[data-kind]");
   const output = find<HTMLOutputElement>(root, "[data-output]");
-  const bars = find(root, "[data-bars]");
-  const level = find(root, "[data-level]");
+  const loading = find(root, "[data-loading]");
+  const meter = find(root, "[data-meter]");
   const details = find(root, "[data-details]");
   const meets = find(root, "[data-meets]");
   const copy = find<HTMLButtonElement>(root, "[data-copy]");
   const copyLabel = find(root, "[data-copy-label]");
+  const copyFailed = find(root, "[data-copy-failed]");
   const regenerate = find<HTMLButtonElement>(root, "[data-regenerate]");
   const status = find(root, "[data-status]");
   const result = find(root, "[data-result]");
   const unsupported = find(root, "[data-unsupported]");
+  const unsupportedTitle = find(root, "[data-unsupported-title]");
   const unsupportedText = find(root, "[data-unsupported-text]");
   const modeRadios = findAll<HTMLInputElement>(root, 'input[name="mode"]');
   const panels = {
     password: find(root, '[data-panel="password"]'),
     passphrase: find(root, '[data-panel="passphrase"]'),
   };
+  const panelNote = find(root, "[data-panel-note]");
+  find(root, "[data-copy-keys]").textContent = apple ? "⌘C" : "Ctrl C";
 
   // Password controls
   const length = bindRange(root, "length", {
@@ -71,6 +94,7 @@ mount("[data-generator]", (root) => {
     },
   });
   const classInputs = findAll<HTMLInputElement>(root, "[data-class]");
+  const lockedHint = find(root, "[data-locked-hint]");
   const ambiguous = find<HTMLInputElement>(root, "[data-ambiguous]");
 
   // Passphrase controls
@@ -82,24 +106,32 @@ mount("[data-generator]", (root) => {
     },
   });
   const separators = findAll<HTMLInputElement>(root, "[data-separator]");
+  const separatorsHint = find(root, "[data-separators-hint]");
   const capitalize = find<HTMLInputElement>(root, "[data-capitalize]");
   const number = find<HTMLInputElement>(root, "[data-number]");
-  const capitalizeNote = find(root, '[data-note="capitalize"]');
-  const numberNote = find(root, '[data-note="number"]');
+  /** The line under a switch: its example, or why it can't be turned off. */
+  const hint = (input: HTMLInputElement, example: string, locked: boolean) => {
+    find(input.closest("label")!, "[data-hint]").textContent = locked ? `Required by ${owner}` : example;
+  };
 
   /** What Copy copies; empty while there's nothing to copy. */
   let current = "";
 
   function show(value: string, bits: number) {
     current = value;
-    output.value = value;
-    const meter = meterForBits(bits);
-    showMeter(bars, meter);
-    level.textContent = meter.label;
-    const size = prefs.mode === "password" ? `${value.length} characters` : `${prefs.passphrase.words} words`;
-    details.textContent = `${size} · ${Math.floor(bits)} bits`;
+    output.hidden = false;
+    loading.hidden = true;
+    output.classList.toggle("phrase", prefs.mode === "passphrase");
+    output.replaceChildren(...marked(value));
+    showMeter(meter, meterForBits(bits));
+    const size = `${value.length} characters`;
+    details.textContent =
+      prefs.mode === "password"
+        ? `${size} · ${Math.floor(bits)} bits`
+        : `${prefs.passphrase.words} words · ${size} · ${Math.floor(bits)} bits`;
     meets.hidden = anySite || !checkRules(rules, value).every((c) => c.pass);
     copy.disabled = regenerate.disabled = false;
+    copyFailed.hidden = true;
   }
 
   function renderPassword() {
@@ -111,30 +143,32 @@ mount("[data-generator]", (root) => {
       input.checked = c in p.pools;
       input.disabled = locked || p.unavailable.includes(c);
       const chip = input.closest<HTMLElement>("[data-chip]")!;
-      const text = chipText(chip.dataset.title!, c, p, owner);
-      chip.toggleAttribute("data-locked", locked);
-      chip.title = text.title;
-      find(chip, "[data-state]").textContent = text.state;
+      if (locked) chip.dataset.lock = "required";
+      else if (p.unavailable.includes(c)) chip.dataset.lock = "unavailable";
+      else delete chip.dataset.lock;
+      find(chip, "[data-note]").textContent = classNote(c, p, rules);
     }
+    lockedHint.hidden = p.locked.length === 0 && p.unavailable.length === 0;
     ambiguous.checked = prefs.password.avoidAmbiguous;
     show(generate(p), entropyBits(p));
   }
 
   /** Shows why there's no passphrase, with "Use a password" in its place. */
-  function noPassphrase(reason: string) {
-    unsupported.hidden = false;
+  function noPassphrase(title: string, reason: string) {
+    unsupported.hidden = panelNote.hidden = false;
     result.hidden = panels.passphrase.hidden = true;
+    meets.hidden = true;
+    unsupportedTitle.textContent = title;
     unsupportedText.textContent = reason;
     current = "";
   }
 
   async function renderPassphrase() {
     const p = planPassphrase(rules, prefs.passphrase);
-    unsupported.hidden = true;
+    unsupported.hidden = panelNote.hidden = true;
     result.hidden = panels.passphrase.hidden = false;
-    meets.hidden = true;
     if (p.unsupported !== null) {
-      noPassphrase(`Passphrases don't fit ${owner}: ${p.unsupported}`);
+      noPassphrase("Too short for a passphrase", `Passphrases don't fit ${owner}: ${p.unsupported}`);
       return;
     }
 
@@ -143,15 +177,20 @@ mount("[data-generator]", (root) => {
       input.disabled = !p.separators.includes(input.value as Separator);
       input.checked = input.value === p.separator;
     }
+    separatorsHint.hidden = p.separators.length === SEPARATORS.length;
     capitalize.checked = p.capitalize;
     capitalize.disabled = p.locked.capitalize;
-    capitalizeNote.textContent = p.locked.capitalize ? "required" : "";
+    hint(capitalize, "Copper-Ladle", p.locked.capitalize);
     number.checked = p.number;
     number.disabled = p.locked.number;
-    numberNote.textContent = p.locked.number ? "required" : "";
+    hint(number, "amber4", p.locked.number);
 
     if (!wordlist) {
-      output.value = "Loading words…";
+      output.hidden = true;
+      loading.hidden = false;
+      showMeter(meter, null);
+      details.textContent = "";
+      meets.hidden = true;
       copy.disabled = regenerate.disabled = true;
       try {
         wordlist = await loadWordlist();
@@ -159,7 +198,7 @@ mount("[data-generator]", (root) => {
         // Offline, or a tab opened before a deploy asking for a file that's gone. A failed import may be cached,
         // so a reload is the sure retry.
         if (prefs.mode === "passphrase") {
-          noPassphrase("Couldn't load the word list. Check your connection, then reload the page.");
+          noPassphrase("Couldn't load the word list", "Check your connection, then reload the page.");
         }
         return;
       }
@@ -169,10 +208,12 @@ mount("[data-generator]", (root) => {
   }
 
   function render() {
+    kind.textContent = prefs.mode === "password" ? "Your password" : "Your passphrase";
+    regenerate.setAttribute("aria-label", prefs.mode === "password" ? "New password" : "New passphrase");
     panels.password.hidden = prefs.mode !== "password";
     panels.passphrase.hidden = prefs.mode !== "passphrase";
     result.hidden = false;
-    unsupported.hidden = true;
+    unsupported.hidden = panelNote.hidden = true;
     for (const radio of modeRadios) radio.checked = radio.value === prefs.mode;
     if (prefs.mode === "password") renderPassword();
     else void renderPassphrase();
@@ -220,18 +261,23 @@ mount("[data-generator]", (root) => {
     if (!current) return;
     try {
       await navigator.clipboard.writeText(current);
-      addRecent({ value: current, site, at: Date.now() });
+      addRecent({ value: current, site, id, at: Date.now() });
       copyLabel.textContent = "Copied";
+      copy.toggleAttribute("data-copied", true);
+      copyFailed.hidden = true;
       status.textContent = "Copied to the clipboard.";
     } catch {
       copyLabel.textContent = "Copy failed";
-      status.textContent = "Couldn't copy. Select the text and copy it yourself.";
+      // Stays until there's a new password, so there's time to copy by hand.
+      copyFailed.hidden = false;
+      status.textContent = "Couldn't copy. Select the password and copy it yourself.";
     }
     clearTimeout(copiedTimer);
     copiedTimer = window.setTimeout(() => {
       copyLabel.textContent = "Copy";
+      copy.removeAttribute("data-copied");
       status.textContent = "";
-    }, 2000);
+    }, 1800);
   });
 
   render();

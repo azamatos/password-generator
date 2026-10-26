@@ -20,7 +20,8 @@ export const DEFAULT_PASSPHRASE_OPTIONS: PassphraseOptions = {
   words: 5,
   separator: "-",
   capitalize: false,
-  number: false,
+  // On, as in the design: a digit on one word, so sites that require a number take the phrase as it is.
+  number: true,
 };
 
 export const MIN_WORDS = 4;

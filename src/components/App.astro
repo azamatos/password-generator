@@ -1,11 +1,13 @@
 ---
 import Banner from "@/components/Banner.astro";
 import Generator from "@/components/Generator.astro";
-import Sidebar from "@/components/Sidebar.astro";
+import OtherSites from "@/components/OtherSites.astro";
+import Rules from "@/components/Rules.astro";
+import Trust from "@/components/Trust.astro";
+import Icon from "@/components/ui/Icon.astro";
 import { ANY } from "@/data/platforms";
 import type { Platform } from "@/data/types";
-import { inkFor } from "@/lib/color";
-import { ruleTags } from "@/lib/describe";
+import { bannerTags } from "@/lib/describe";
 
 interface Props {
   /** Undefined for "Any site". */
@@ -14,42 +16,73 @@ interface Props {
 
 const { platform } = Astro.props;
 const site = platform ?? ANY;
-// The platform's color on its banner, Copy button, slider and switches; "Any site" keeps the neutral slider.
-const theme =
-  `--brand: ${site.color}; --brand-ink: ${inkFor(site.color)}` + (platform ? `; --slider: ${site.color}` : "");
 ---
 
-<div class="wrap app">
-  <Sidebar current={site.id} />
-  <div class="main" style={theme}>
-    <Banner name={site.name} tags={ruleTags(site.rules)} logo={platform?.id} />
-    <Generator rules={site.rules} site={site.name} anySite={!platform} />
-  </div>
+<div class="wrap">
+  <Banner
+    eyebrow={platform ? "Password generator for" : "Password generator"}
+    title={site.name}
+    logo={site.id}
+    tags={bannerTags(site.rules)}
+  >
+    {/* A link to the list of sites without JavaScript; src/scripts/header.ts opens the switcher instead. */}
+    <a slot="action" class="change" href="#other-sites" aria-haspopup="dialog" data-sites-open>
+      <Icon name="swap" size={18} />
+      <span>Change site</span>
+      <kbd data-shortcut>⌘K</kbd>
+    </a>
+  </Banner>
+  <Generator id={site.id} site={site.name} rules={site.rules} anySite={!platform}>
+    <Rules platform={platform} />
+    <Trust />
+  </Generator>
+  <OtherSites current={site.id} />
 </div>
 
 <style>
-  /* The sidebar stretches to the height of the right column (see Sidebar). */
-  .app {
-    display: grid;
-    grid-template-columns: 260px minmax(0, 1fr);
-    gap: 24px;
-    align-items: stretch;
-    padding-top: 24px;
+  .change {
+    display: inline-flex;
+    grid-area: action;
+    align-self: start;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    padding: 0 10px 0 18px;
+    border-radius: 999px;
+    background: color-mix(in srgb, currentColor 13%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 30%, transparent);
+    font-weight: 500;
   }
 
-  .main {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    min-width: 0;
+  .change:hover {
+    background: color-mix(in srgb, currentColor 20%, transparent);
   }
 
-  @media (max-width: 760px) {
-    .app {
-      grid-template-columns: minmax(0, 1fr);
-      align-items: start;
-      gap: 14px;
-      padding-top: 14px;
+  .change kbd {
+    background: color-mix(in srgb, currentColor 16%, transparent);
+    color: inherit;
+  }
+
+  @media (max-width: 700px) {
+    .change {
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+    }
+
+    .change kbd {
+      display: none;
+    }
+
+    /* The icon alone; the words stay for screen readers. */
+    .change span {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
     }
   }
 </style>

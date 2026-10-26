@@ -35,12 +35,20 @@ const states: { name: string; reach: (page: Page) => Promise<void> }[] = [
     },
   },
   {
+    name: "the site switcher",
+    reach: async (page) => {
+      await open(page, "/github/");
+      await page.keyboard.press("ControlOrMeta+k");
+      await settle(page.getByRole("dialog"));
+    },
+  },
+  {
     name: "/health, leaked",
     reach: async (page) => {
       await pwned(page, { password123: 2266543 });
       await open(page, "/health/");
-      await page.getByRole("textbox", { name: "Check your password" }).fill("password123");
-      await expect(page.getByText("Leaked", { exact: true })).toBeVisible();
+      await page.getByRole("textbox", { name: "Password to check" }).fill("password123");
+      await expect(page.locator("[data-leak]")).toHaveAttribute("data-state", "leaked");
     },
   },
   {
@@ -48,8 +56,8 @@ const states: { name: string; reach: (page: Page) => Promise<void> }[] = [
     reach: async (page) => {
       await pwned(page);
       await open(page, "/health/");
-      await page.getByRole("textbox", { name: "Check your password" }).fill("vQ7#mZ2!kR9$wL4@");
-      await expect(page.getByText("Not found in known data breaches.", { exact: true })).toBeVisible();
+      await page.getByRole("textbox", { name: "Password to check" }).fill("vQ7#mZ2!kR9$wL4@");
+      await expect(page.locator("[data-leak]")).toHaveAttribute("data-state", "clean");
     },
   },
   {

@@ -1,4 +1,4 @@
-import type { CharClass } from "./charsets";
+import { DEFAULT_SYMBOLS, type CharClass } from "./charsets";
 import { checkRules, type PasswordRules, type Plan } from "./password";
 
 const MARK: Record<CharClass, string> = { upper: "A", lower: "a", digit: "9", symbol: "!" };
@@ -26,16 +26,52 @@ export function ruleTags(rules: PasswordRules): string[] {
 }
 
 /**
- * Tooltip and screen-reader suffix for a character type's chip, saying why it can't be switched:
- * "Numbers (required by GitHub)", "Symbols: !@# (not accepted by Example)".
+ * The line under a character type's tile: why it can't be switched ("Required", "Not allowed"), or for symbols, which
+ * ones the site takes ("Only !#$%&@", "No #"). Empty otherwise.
  */
-export function chipText(base: string, c: CharClass, p: Pick<Plan, "locked" | "unavailable">, owner: string) {
-  const note = p.locked.includes(c)
-    ? `required by ${owner}`
-    : p.unavailable.includes(c)
-      ? `not accepted by ${owner}`
-      : "";
-  return { title: note ? `${base} (${note})` : base, state: note ? `, ${note}` : "" };
+export function classNote(c: CharClass, p: Pick<Plan, "locked" | "unavailable">, rules: PasswordRules): string {
+  if (p.locked.includes(c)) return "Required";
+  if (p.unavailable.includes(c)) return "Not allowed";
+  if (c !== "symbol" || !rules.symbols) return "";
+  const missing = [...DEFAULT_SYMBOLS].filter((s) => !rules.symbols!.includes(s)).join("");
+  if (!missing) return "";
+  return missing.length < rules.symbols.length ? `No ${missing}` : `Only ${rules.symbols}`;
+}
+
+/**
+ * The banner's tags, from length to the details: "8–20 characters", "Letter", "Number or symbol", "No 4 in a row",
+ * "Symbols !@#$%^&*()". A limited symbol set comes last, as "Symbols " and the set, so the banner can set it in mono.
+ */
+export function bannerTags(rules: PasswordRules): string[] {
+  const tags = [
+    rules.maxLength === null ? `${rules.minLength}+ characters` : `${rules.minLength}–${rules.maxLength} characters`,
+  ];
+  const WORDS: Record<string, string> = {
+    lower: "Lowercase",
+    upper: "Uppercase",
+    digit: "Number",
+    symbol: "Symbol",
+    "lower,upper": "Letter",
+    "digit,symbol": "Number or symbol",
+  };
+  for (const group of rules.required) tags.push(WORDS[group.join(",")] ?? group.join(" or "));
+  if (rules.minClasses) tags.push(`${rules.minClasses.count} of 4 types`);
+  if (rules.maxRepeat) tags.push(`No ${rules.maxRepeat + 1} in a row`);
+  const note = rules.symbols === null ? "" : classNote("symbol", { locked: [], unavailable: [] }, rules);
+  if (rules.symbols === "") tags.push("No symbols");
+  else if (note.startsWith("Only ")) tags.push(`Symbols ${rules.symbols}`);
+  else if (note) tags.push(note);
+  if (tags.length === 1) tags.push("Any characters");
+  if (rules.spaces) tags.push("Spaces OK");
+  return tags;
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "2026-10" → "Oct 2026", for when a site's rules were checked. */
+export function monthYear(checked: string): string {
+  const [year, month] = checked.split("-");
+  return `${MONTHS[Number(month) - 1]} ${year}`;
 }
 
 /** The share image's tags, three at most: length, then what's required, in words. */

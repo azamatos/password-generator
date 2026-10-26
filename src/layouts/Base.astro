@@ -3,6 +3,8 @@ import { Font } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
 import Footer from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
+import { ANY } from "@/data/platforms";
+import { brandStyle } from "@/lib/color";
 import { SITE } from "@/site";
 import "@/styles/global.css";
 
@@ -12,9 +14,11 @@ interface Props {
   /** Path of the share image inside public/, without the leading slash. */
   ogImage?: string;
   noindex?: boolean;
+  /** The site's colour for the banner and the controls; coral for Any site and the other pages. */
+  brand?: string;
 }
 
-const { title, description, ogImage = "og/main.png", noindex = false } = Astro.props;
+const { title, description, ogImage = "og/main.png", noindex = false, brand = ANY.color } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImageUrl = new URL(ogImage, Astro.site).href;
 
@@ -39,9 +43,21 @@ const app = {
     <title>{title}</title>
     <meta name="description" content={description} />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
-    <meta name="theme-color" content="#fdfaf3" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#14130f" media="(prefers-color-scheme: dark)" />
-
+    <meta name="theme-color" content="#faf5ec" />
+    {/* The theme before the first paint, so a dark page never flashes light. src/scripts/theme.ts explains; its hash is in public/_headers. */}
+    <script is:inline>
+      (() => {
+        let choice = null;
+        try {
+          choice = localStorage.getItem("pass-theme");
+        } catch {
+          // Storage is blocked: the system's setting decides.
+        }
+        const dark = choice ? choice === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+        document.querySelector('meta[name="theme-color"]').content = dark ? "#15130f" : "#faf5ec";
+      })();
+    </script>
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="pass.azamatos" />
     <meta property="og:title" content={title} />
@@ -61,7 +77,6 @@ const app = {
 
     <Font cssVariable="--font-sans" preload />
     <Font cssVariable="--font-mono" preload />
-    <Font cssVariable="--font-display" preload />
 
     <script is:inline type="application/ld+json" set:html={JSON.stringify(app)} />
     <ClientRouter />
@@ -74,7 +89,7 @@ const app = {
       Skip to content
     </a>
     <Header />
-    <main id="main">
+    <main id="main" style={brandStyle(brand)}>
       <slot />
     </main>
     <Footer />
@@ -97,11 +112,10 @@ const app = {
     top: -48px;
     z-index: 10;
     padding: 10px 14px;
-    border-radius: var(--radius-sm);
-    background: var(--on);
-    color: var(--on-text);
+    border-radius: 12px;
+    background: var(--ink);
+    color: var(--bg);
     font-weight: 600;
-    text-decoration: none;
   }
 
   .skip:focus {

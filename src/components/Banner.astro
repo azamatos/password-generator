@@ -1,140 +1,238 @@
 ---
+import Icon, { type IconName } from "@/components/ui/Icon.astro";
+import Logo from "@/components/ui/Logo.astro";
+
+/**
+ * The page's banner in the site's colour (--brand): a white tile with the logo, the title, and under them the rule tags
+ * or a line of text (the default slot). The logo also sits large and faint behind it all. "action" goes top right.
+ */
 interface Props {
-  name: string;
-  tags: string[];
-  /** Logo file in public/icons; without one (Any site) the banner shows an asterisk. */
+  eyebrow: string;
+  title: string;
+  /** A site's id for its logo, or an icon for pages that aren't a site's. */
   logo?: string;
+  icon?: IconName;
+  tags?: string[];
+  /** A smaller title, for pages with a sentence as their title. */
+  long?: boolean;
 }
 
-const { name, tags, logo } = Astro.props;
+const { eyebrow, title, logo, icon = "shield", tags = [], long = false } = Astro.props;
 ---
 
-<section class="banner" aria-labelledby="site-title">
-  <div class="text">
-    <h1 id="site-title">{name}</h1>
-    <ul class="tags" aria-label={`${name} password rules`}>
-      {tags.map((tag) => (
-        <li>{tag}</li>
-      ))}
-    </ul>
+<section class:list={["banner", { long }]}>
+  <span class="watermark" aria-hidden="true">
+    {logo ? <Logo id={logo} eager /> : <Icon name={icon} size={400} weight={1.6} />}
+  </span>
+  <span class="tile" aria-hidden="true">
+    {logo ? <Logo id={logo} eager /> : <Icon name={icon} size={46} weight={2.2} />}
+  </span>
+  <div class="name">
+    <p class="eyebrow">{eyebrow}</p>
+    <h1>{title}</h1>
   </div>
-  {logo ? (
-    <img class="art" src={`/icons/${logo}.svg`} alt="" width="72" height="72" />
-  ) : (
-    <span class="art tile" aria-hidden="true">
-      <svg class="any" viewBox="0 0 16 16">
-        <path d="M8 2.5v11M3.2 5.25l9.6 5.5M12.8 5.25l-9.6 5.5" />
-      </svg>
-    </span>
+  <slot name="action" />
+  {tags.length > 0 && (
+    <ul class="tags" aria-label="Rules in short">
+      {tags.map((tag) => {
+        const symbols = /^Symbols (.+)$/.exec(tag);
+        return (
+          <li>
+            {symbols ? (
+              <>
+                Symbols <span class="mono">{symbols[1]}</span>
+              </>
+            ) : (
+              tag
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  )}
+  {Astro.slots.has("default") && (
+    <p class="sub">
+      <slot />
+    </p>
   )}
 </section>
 
 <style>
   .banner {
-    display: flex;
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-areas:
+      "tile name action"
+      "tags tags tags";
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 26px 28px;
     align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 26px 32px 24px;
-    border-radius: var(--radius-lg);
-    border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 18%, var(--bg)) 0%, var(--bg) 100%);
+    overflow: hidden;
+    padding: 40px 44px 124px;
+    border-radius: var(--radius-xl);
+    background: var(--brand);
+    color: var(--brand-ink);
   }
 
-  .text {
+  .watermark {
+    position: absolute;
+    z-index: -1;
+    top: -80px;
+    right: -60px;
+    width: 400px;
+    height: 400px;
+    opacity: 0.13;
+    transform: rotate(-14deg);
+  }
+
+  .watermark :global(img),
+  .watermark :global(svg) {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* A coloured logo turned into the banner's text colour: black, or white with --watermark-invert. */
+  .watermark :global(img) {
+    filter: brightness(0) invert(var(--watermark-invert));
+  }
+
+  .tile {
+    display: grid;
+    grid-area: tile;
+    place-items: center;
+    width: 88px;
+    height: 88px;
+    border-radius: 26px;
+    background: #fff;
+    color: var(--brand-ui-light);
+    box-shadow:
+      0 2px 0 rgba(0, 0, 0, 0.06),
+      0 12px 26px -12px rgba(0, 0, 0, 0.4);
+  }
+
+  .tile :global(img),
+  .tile :global(svg) {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+  }
+
+  .name {
+    grid-area: name;
     min-width: 0;
   }
 
+  .eyebrow {
+    font-size: 18px;
+    font-weight: 500;
+    opacity: 0.88;
+  }
+
   h1 {
-    margin-bottom: 16px;
-    font-family: var(--font-display);
-    font-size: 44px;
-    font-weight: 400;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    overflow-wrap: anywhere;
+    margin-top: 6px;
+    font-size: 68px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
   }
 
   .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    list-style: none;
+    grid-area: tags;
+    gap: 8px;
   }
 
   .tags li {
     display: inline-flex;
     align-items: center;
-    height: 26px;
-    padding: 0 11px;
-    border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--border));
+    gap: 6px;
+    height: 36px;
+    padding: 0 14px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--surface) 75%, transparent);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-2);
+    background: color-mix(in srgb, currentColor 14%, transparent);
+    font-size: 15px;
+    font-weight: 500;
   }
 
-  .art {
-    flex: none;
-    width: 72px;
-    height: 72px;
-    object-fit: contain;
+  .mono {
+    font-family: var(--font-mono);
   }
 
-  .tile {
-    display: grid;
-    place-items: center;
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    background: var(--surface);
-    font-family: var(--font-display);
-    font-size: 30px;
-    color: var(--text-2);
+  .sub {
+    grid-area: tags;
+    max-width: 660px;
+    font-size: 18px;
+    text-wrap: pretty;
   }
 
-  .any {
-    width: 28px;
-    height: 28px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
+  .long {
+    grid-template-areas:
+      "tile name"
+      "tags tags";
+    grid-template-columns: auto minmax(0, 1fr);
   }
 
-  /* Dark logos (GitHub, Apple, X, TikTok) need a light tile on a dark page. */
-  @media (prefers-color-scheme: dark) {
-    img.art {
-      padding: 10px;
-      border-radius: 18px;
-      background: #fff;
-    }
+  .long h1 {
+    font-size: 56px;
   }
 
-  @media (max-width: 760px) {
+  @media (max-width: 700px) {
     .banner {
-      padding: 18px 18px 16px;
-      gap: 12px;
+      gap: 14px;
+      padding: 18px 18px 58px;
+      border-radius: 26px;
+    }
+
+    .watermark {
+      top: -30px;
+      right: -60px;
+      width: 230px;
+      height: 230px;
+    }
+
+    .tile {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+    }
+
+    .tile :global(img),
+    .tile :global(svg) {
+      width: 28px;
+      height: 28px;
+    }
+
+    .eyebrow {
+      font-size: 14px;
+      line-height: 1.3;
     }
 
     h1 {
-      margin-bottom: 12px;
-      font-size: 30px;
+      margin-top: 2px;
+      font-size: 34px;
+    }
+
+    .tags {
+      gap: 6px;
     }
 
     .tags li {
-      height: 24px;
-      padding: 0 9px;
-      font-size: 10px;
+      height: 28px;
+      padding: 0 11px;
+      font-size: 13.5px;
     }
 
-    .art {
-      width: 48px;
-      height: 48px;
-      font-size: 20px;
-      border-radius: 12px;
+    .sub {
+      font-size: 15px;
+    }
+
+    .long h1 {
+      font-size: 26px;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
     }
   }
 </style>

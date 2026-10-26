@@ -1,5 +1,5 @@
 // The /health page: zxcvbn's estimate from a worker, then a leak check once typing pauses.
-import { pwnedCount } from "@/lib/hibp";
+import { pwnedCount, sha1Hex } from "@/lib/hibp";
 import { meterForScore } from "@/lib/strength";
 import { humanizeSeconds } from "@/lib/time";
 import { find, mount } from "./dom";
@@ -36,22 +36,55 @@ function analyse(password: string): Promise<CheckResult | null> {
   });
 }
 
+type LeakState = "none" | "checking" | "clean" | "leaked" | "error" | "off";
+
+const LEAK_TEXT: Record<Exclude<LeakState, "leaked">, [title: string, text: string]> = {
+  none: ["Leak check is on", "Your password is compared with Have I Been Pwned’s list of leaked passwords."],
+  checking: ["Checking known leaks…", "Only the first 5 characters of the password’s hash are sent."],
+  clean: ["Not found in known leaks", "Have I Been Pwned has no record of this password."],
+  error: [
+    "Couldn’t check for leaks",
+    "You may be offline, or Have I Been Pwned isn’t answering. Nothing else was sent.",
+  ],
+  off: ["Leak check is off", "Nothing leaves your browser. Turn it on to look for this password in known leaks."],
+};
+
+/** "~10⁷ guesses", with the exponent raised. */
+function guessesText(guesses: number): (string | HTMLElement)[] {
+  const power = document.createElement("sup");
+  power.textContent = String(Math.round(Math.log10(Math.max(guesses, 1))));
+  return ["~10", power, " guesses"];
+}
+
 mount("[data-health]", (root) => {
   const input = find<HTMLInputElement>(root, "[data-input]");
   const toggle = find<HTMLButtonElement>(root, "[data-toggle]");
+  const clear = find<HTMLButtonElement>(root, "[data-clear]");
   const optIn = find<HTMLInputElement>(root, "[data-leak-opt-in]");
+  const idle = find(root, "[data-idle]");
   const loading = find(root, "[data-loading]");
   const failed = find(root, "[data-failed]");
-  const announce = find(root, "[data-announce]");
-  const results = find(root, "[data-results]");
-  const bars = find(root, "[data-bars]");
   const verdict = find(root, "[data-verdict]");
-  const leakChip = find(root, "[data-leak-chip]");
+  const details = find(verdict, "[data-details]");
+  const announce = find(root, "[data-announce]");
+  const times = find(root, "[data-times]");
   const online = find(root, "[data-online]");
   const offline = find(root, "[data-offline]");
-  const leak = find(root, "[data-leak]");
+  const empty = find(root, "[data-empty-note]");
+  const advice = find(root, "[data-advice]");
   const warning = find(root, "[data-warning]");
   const suggestions = find<HTMLUListElement>(root, "[data-suggestions]");
+  const stronger = find(root, "[data-stronger]");
+  const strongerLink = find(root, "[data-stronger-link]");
+  const leak = find(root, "[data-leak]");
+  const leakTitle = find(root, "[data-leak-title]");
+  const leakText = find(root, "[data-leak-text]");
+  const retry = find<HTMLButtonElement>(root, "[data-leak-retry]");
+  const hash = find(root, "[data-hash]");
+  const hashSent = find(root, "[data-hash-sent]");
+  const hashKept = find(root, "[data-hash-kept]");
+  const legendOn = find(root, "[data-legend-on]");
+  const legendOff = find(root, "[data-legend-off]");
 
   /** Which input the results belong to; older answers are dropped. */
   let latest = 0;
@@ -61,13 +94,40 @@ mount("[data-health]", (root) => {
   let leaked = false;
   let leakTimer = 0;
   let leakAbort: AbortController | undefined;
+  /** The latest input's SHA-1, shown as what's sent and what stays. */
+  let fullHash = "";
+
+  const showLeak = (state: LeakState, count = 0) => {
+    leak.dataset.state = state;
+    const [title, text] =
+      state === "leaked"
+        ? [
+            `Found in ${count.toLocaleString("en")} leaks`,
+            "Leaked passwords are tried first. Don’t use this one anywhere.",
+          ]
+        : LEAK_TEXT[state];
+    leakTitle.textContent = title;
+    leakText.textContent = text;
+    retry.hidden = state !== "error";
+    // Only the first 5 characters are ever sent; the rest stays masked unless the password itself is shown.
+    const sends = optIn.checked && state !== "error";
+    hash.toggleAttribute("data-off", !sends);
+    legendOn.hidden = !sends;
+    legendOff.hidden = sends;
+    const shown = input.type === "text";
+    hashSent.textContent = fullHash ? fullHash.slice(0, 5) : "•••••";
+    hashKept.textContent = fullHash && shown ? fullHash.slice(5) : "•".repeat(35);
+  };
 
   // A leaked password is guessed first, however random it looks, so a leak overrides zxcvbn's score.
   const showVerdict = (news = "") => {
     if (score === null) return;
     const meter = meterForScore(leaked ? 0 : score);
-    showMeter(bars, meter);
-    verdict.textContent = meter.label;
+    showMeter(verdict, meter);
+    const weak = meter.tone !== "good";
+    stronger.hidden = false;
+    strongerLink.classList.toggle("brand", weak);
+    strongerLink.classList.toggle("soft", !weak);
     // Screen readers hear the level and the leak result, not the whole panel on every keystroke.
     announce.textContent = news ? `${meter.label}. ${news}` : meter.label;
   };
@@ -77,38 +137,40 @@ mount("[data-health]", (root) => {
   toggle.addEventListener("click", () => {
     const show = input.type === "password";
     input.type = show ? "text" : "password";
-    // Same label, pressed or not: screen readers announce "Show password, toggle button, pressed".
     toggle.setAttribute("aria-pressed", String(show));
+    showLeak(leak.dataset.state as LeakState, Number(leak.dataset.count ?? 0));
   });
 
   async function checkLeak(password: string, run: number) {
     leakAbort?.abort();
-    if (!optIn.checked || !password) {
-      leak.hidden = leakChip.hidden = true;
-      leaked = false;
+    leaked = false;
+    if (!password) return;
+    if (!optIn.checked) {
+      showLeak("off");
       showVerdict();
       return;
     }
     leakAbort = new AbortController();
-    leak.hidden = false;
-    leak.dataset.state = "checking";
-    leak.textContent = "Checking known breaches…";
+    showLeak("checking");
     try {
       const count = await pwnedCount(password, leakAbort.signal);
       if (run !== latest) return;
-      leak.dataset.state = count ? "leaked" : "clean";
-      leak.textContent = count
-        ? `Found ${count.toLocaleString("en")} times in data breaches. Don't use it anywhere.`
-        : "Not found in known data breaches.";
-      leakChip.hidden = !count;
       leaked = count > 0;
-      showVerdict(leak.textContent);
+      leak.dataset.count = String(count);
+      showLeak(count ? "leaked" : "clean", count);
+      showVerdict(`${leakTitle.textContent}.`);
     } catch (error) {
       if ((error as Error).name === "AbortError" || run !== latest) return;
-      leak.dataset.state = "error";
-      leak.textContent = "Couldn't reach Have I Been Pwned. Check your connection.";
-      showVerdict(leak.textContent);
+      showLeak("error");
+      showVerdict(`${leakTitle.textContent}.`);
     }
+  }
+
+  function reset() {
+    times.toggleAttribute("data-blank", true);
+    online.textContent = offline.textContent = "—";
+    empty.hidden = false;
+    advice.hidden = stronger.hidden = true;
   }
 
   async function update() {
@@ -118,37 +180,45 @@ mount("[data-health]", (root) => {
     leaked = false;
     clearTimeout(leakTimer);
     leakAbort?.abort();
+    clear.hidden = !password;
+    failed.hidden = verdict.hidden = loading.hidden = true;
+    idle.hidden = Boolean(password);
+    fullHash = password ? await sha1Hex(password) : "";
+    if (run !== latest) return;
+    showLeak(password && !optIn.checked ? "off" : "none");
     if (!password) {
-      results.hidden = loading.hidden = failed.hidden = true;
+      reset();
       announce.textContent = "";
       return;
     }
-    // Drop the previous password's leak result straight away; the new one follows after a pause.
-    leak.hidden = !optIn.checked;
-    leakChip.hidden = true;
-    leak.dataset.state = "checking";
-    leak.textContent = "Checking known breaches…";
 
     if (!worker) loading.hidden = false;
     const r = await analyse(password);
     if (run !== latest) return;
     loading.hidden = true;
-    failed.hidden = Boolean(r);
-    results.hidden = !r;
     if (!r) {
+      reset();
+      failed.hidden = false;
       announce.textContent = failed.textContent!.trim();
       return;
     }
 
+    verdict.hidden = false;
     score = r.score;
     showVerdict();
+    details.replaceChildren(`${[...password].length} characters · `, ...guessesText(r.guesses));
+    times.removeAttribute("data-blank");
     online.textContent = humanizeSeconds(r.guesses / 10);
     // A leaked database with a slow hash such as bcrypt, the case zxcvbn's estimates are made for.
     offline.textContent = humanizeSeconds(r.guesses / 1e4);
-    warning.hidden = !r.warning;
-    warning.textContent = r.warning ?? "";
+    empty.hidden = true;
+    // zxcvbn's warning when it has one; suggestions alone mean it could be stronger; neither means it found nothing.
+    const fine = !r.warning && (r.suggestions.length === 0 || r.score >= 3);
+    advice.hidden = false;
+    advice.toggleAttribute("data-fine", fine);
+    warning.textContent = r.warning ?? (fine ? "No common patterns found" : "It could be stronger");
     suggestions.replaceChildren(
-      ...r.suggestions.map((s) => {
+      ...(fine ? [] : r.suggestions).map((s) => {
         const li = document.createElement("li");
         li.textContent = s;
         return li;
@@ -165,9 +235,11 @@ mount("[data-health]", (root) => {
     leakCheckOn = optIn.checked;
     // Check now rather than after the typing pause, and only once.
     clearTimeout(leakTimer);
-    void checkLeak(input.value, latest);
+    if (score !== null) void checkLeak(input.value, latest);
+    else showLeak(input.value && !optIn.checked ? "off" : "none");
   });
-  find(root, "[data-clear]").addEventListener("click", () => {
+  retry.addEventListener("click", () => void checkLeak(input.value, latest));
+  clear.addEventListener("click", () => {
     input.value = "";
     void update();
     input.focus();

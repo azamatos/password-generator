@@ -10,9 +10,10 @@ export async function open(page: Page, path: string): Promise<void> {
   await expect(page.locator("[data-generator], [data-health]").first()).toHaveAttribute("data-mounted", "");
 }
 
-/** Goes to another site the way a visitor would, with the sidebar's search. Keeps the page, unlike page.goto. */
+/** Goes to another site the way a visitor would, with the site switcher. Keeps the page, unlike page.goto. */
 export async function switchSite(page: Page, name: string): Promise<void> {
-  await page.getByRole("searchbox", { name: "Search platforms" }).fill(name);
+  await page.getByRole("link", { name: /Change site/ }).click();
+  await page.getByRole("searchbox", { name: "Search sites" }).fill(name);
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(name);
   await expect(page.locator("[data-generator]")).toHaveAttribute("data-mounted", "");

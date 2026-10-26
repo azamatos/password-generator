@@ -44,8 +44,8 @@ const lazy = async (pattern) => {
 const kB = (bytes) => `${(bytes / 1000).toFixed(1)} kB`;
 const budgets = [
   { name: "A site's page: JavaScript", size: js("github/index.html"), limit: 14_000 },
-  { name: "A site's page: CSS", size: css("github/index.html"), limit: 6_500 },
-  { name: "/health: JavaScript", size: js("health/index.html"), limit: 10_000 },
+  { name: "A site's page: CSS", size: css("github/index.html"), limit: 8_000 },
+  { name: "/health: JavaScript", size: js("health/index.html"), limit: 11_500 },
   { name: "/health: CSS", size: css("health/index.html"), limit: 6_500 },
   { name: "Word list, on the first passphrase", size: await lazy(/^eff-large\..+\.js$/), limit: 26_000 },
   { name: "Strength worker, on the first check", size: await lazy(/^zxcvbn\.worker-.+\.js$/), limit: 860_000 },

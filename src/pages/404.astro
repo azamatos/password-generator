@@ -1,42 +1,40 @@
 ---
+import Banner from "@/components/Banner.astro";
+import OtherSites from "@/components/OtherSites.astro";
+import Button from "@/components/ui/Button.astro";
+import Icon from "@/components/ui/Icon.astro";
 import Base from "@/layouts/Base.astro";
 ---
 
 <Base title="Page not found · pass.azamatos" description="This page doesn't exist." noindex>
-  <section class="wrap">
-    <p class="code">404</p>
-    <h1>This page doesn't exist.</h1>
-    <p>
-      The link may be old or mistyped. <a href="/">Go to the generator</a>.
-    </p>
-  </section>
+  <div class="wrap">
+    <Banner long eyebrow="404" title="No page at this address" icon="search">
+      The link may be old or mistyped. Every site's generator is listed below.
+    </Banner>
+    <div class="actions">
+      <Button variant="brand" href="/">
+        Any site
+        <Icon name="arrow" />
+      </Button>
+      <Button href="/health/">Health check</Button>
+    </div>
+    <OtherSites />
+  </div>
 </Base>
 
 <style>
-  section {
-    padding-top: 64px;
+  /* Sits on the banner's foot, as the cards do on the other pages. */
+  .actions {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: -88px 44px 0;
   }
 
-  /* Coral is too light for text on the light background; the alert tone is the darkest coral that reads. */
-  .code {
-    font-family: var(--font-mono);
-    color: var(--weak);
-  }
-
-  h1 {
-    margin: 8px 0 12px;
-    font-family: var(--font-display);
-    font-size: clamp(28px, 5vw, 48px);
-    font-weight: 400;
-    line-height: 1.2;
-  }
-
-  p {
-    color: var(--text-muted);
-  }
-
-  a {
-    color: var(--text);
-    text-underline-offset: 3px;
+  @media (max-width: 700px) {
+    .actions {
+      margin: -44px 18px 0;
+    }
   }
 </style>

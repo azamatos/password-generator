@@ -1,5 +1,6 @@
 import { z } from "astro/zod";
 import { CHAR_CLASSES, DEFAULT_SYMBOLS } from "@/lib/charsets";
+import { shortSummary } from "@/lib/describe";
 import { ANY_SITE, type PasswordRules } from "@/lib/password";
 import data from "./platforms.json";
 import type { Platform } from "./types";
@@ -63,8 +64,13 @@ export function parsePlatforms(input: unknown): Platform[] {
 
 export const platforms = parsePlatforms(data);
 
-/**
- * "Any site", at /: the generator's own rules, listed first. It has no logo or monogram. Its color is the site's
- * coral accent, also --coral in global.css and used by the share images; color.test.ts keeps the CSS in step.
- */
+/** "Any site", at /: the generator's own rules, listed first. It has no logo; an asterisk stands in. Coral is its colour. */
 export const ANY = { id: "any", name: "Any site", color: "#ff6b4d", rules: ANY_SITE } as const;
+
+/** Every page with a generator, Any site first: for the header's switcher and the list of other sites. */
+export const sites = [ANY, ...platforms].map((p) => ({
+  id: p.id,
+  name: p.name,
+  href: p.id === ANY.id ? "/" : `/${p.id}/`,
+  summary: shortSummary(p.rules),
+}));

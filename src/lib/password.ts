@@ -38,7 +38,8 @@ export const ANY_SITE: PasswordRules = { minLength: 8, maxLength: null, required
 export const DEFAULT_PASSWORD_OPTIONS: PasswordOptions = {
   length: 16,
   classes: { lower: true, upper: true, digit: true, symbol: true },
-  avoidAmbiguous: false,
+  // On, as in the design: 0 O 1 l I left out cost about 2 bits and spare anyone typing the password by hand.
+  avoidAmbiguous: true,
 };
 
 /** What the generator will actually do for these rules and options, after applying the site's limits. */

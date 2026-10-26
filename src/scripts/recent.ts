@@ -1,6 +1,8 @@
 export interface RecentItem {
   value: string;
+  /** The site's name, and its id for the logo. */
   site: string;
+  id: string;
   at: number;
 }
 

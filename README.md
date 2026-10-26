@@ -37,13 +37,13 @@ passwords lives in the open tab's memory and is gone on reload.
 
 | What                                                   | Result                                                                                      |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| JavaScript on a site's page (gzip, budget 14 kB)       | 13.1 kB; the word list (24.8 kB) loads on the first passphrase                              |
-| JavaScript on /health (gzip, budget 10 kB)             | 9.3 kB; the strength worker (838 kB) loads on the first check                               |
-| CSS (gzip, inlined)                                    | 5.6 kB                                                                                      |
+| JavaScript on a site's page (gzip, budget 14 kB)       | 13.5 kB; the word list (24.8 kB) loads on the first passphrase                              |
+| JavaScript on /health (gzip, budget 11.5 kB)           | 10.8 kB; the strength worker (838 kB) loads on the first check                              |
+| CSS (gzip, inlined)                                    | 7.3 kB on a site's page, 6.2 kB on /health                                                  |
 | Lighthouse on a phone (local)                          | performance 99–100; accessibility, best practices and SEO 100                               |
 | Layout shift while a page loads, at 360 px and 1280 px | 0                                                                                           |
-| Switching pages, with 200 ms of network delay          | no request; the new page is on screen 15–50 ms after the click                              |
-| Tests                                                  | 87 unit tests; 43 Playwright tests in Chromium, Firefox and WebKit, with axe in both themes |
+| Switching pages, with 200 ms of network delay          | no request; the new page is on screen 15–70 ms after the click                              |
+| Tests                                                  | 89 unit tests; 47 Playwright tests in Chromium, Firefox and WebKit, with axe in both themes |
 
 ## Run it locally
 
@@ -63,7 +63,7 @@ month.
 ## Adding a site
 
 Add its rules to `src/data/platforms.json` with at least one source and the month you checked them, and its logo to
-`public/icons/<id>.svg`. The page, the sidebar entry and the share image are made from that; `pnpm test` checks the
-rest. `CLAUDE.md` has the details.
+`public/icons/<id>.svg`, and its colour. The page, its entries in the site switcher and the list of sites, and the share
+image are made from that; `pnpm test` checks the rest. `CLAUDE.md` has the details.
 
 MIT licence. Built by [Azamat Jorayev](https://azamatos.com).

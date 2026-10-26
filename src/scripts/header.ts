@@ -177,9 +177,9 @@ function setupSites(header: HTMLElement) {
   });
 }
 
-// ⌘K on Apple devices, Ctrl K elsewhere, wherever the page shows the shortcut.
-const shortcut = /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘K" : "Ctrl K";
-const showShortcuts = () => document.querySelectorAll("[data-shortcut]").forEach((k) => (k.textContent = shortcut));
+// ⌘ or Ctrl, which decides how shortcuts are written. Base.astro's script sets it before the first paint; the client
+// router drops <html>'s attributes when it swaps a page in, so it's put back then.
+const keys = document.documentElement.dataset.keys;
 
 /** Marks the current site in the switcher, and the current tab: Generator on a site's page, Health on /health/. */
 function markCurrent(header: HTMLElement) {
@@ -203,7 +203,6 @@ mount("[data-header]", (header) => {
   setupTheme(header);
   setupSites(header);
   markCurrent(header);
-  showShortcuts();
 
   const dialogs = findAll<HTMLDialogElement>(header, "[data-dialog]");
   for (const dialog of dialogs) {
@@ -217,6 +216,6 @@ mount("[data-header]", (header) => {
   document.addEventListener("astro:before-preparation", () => dialogs.forEach((d) => d.close()));
   document.addEventListener("astro:after-swap", () => {
     markCurrent(header);
-    showShortcuts();
+    if (keys) document.documentElement.dataset.keys = keys;
   });
 });

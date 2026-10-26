@@ -165,31 +165,50 @@ test.describe("before the script runs", () => {
     await expect(message).toBeVisible();
     expect(await message.evaluate((e) => e.textContent)).toBe("Turn on JavaScript to generate a password.");
     // "Change site" leads to the list of every site instead of opening the switcher.
-    await expect(page.getByRole("link", { name: /Change site/ })).toHaveAttribute("href", "#other-sites");
+    const change = page.getByRole("link", { name: /Change site/ });
+    await expect(change).toHaveAttribute("href", "#other-sites");
+    // No ⌘K, since there's no switcher to open.
+    await expect(change.locator("kbd")).toBeHidden();
     await expect(page.getByRole("region", { name: "Passwords for other sites" }).getByRole("link")).toHaveCount(17);
     await context.close();
   });
 
-  test("nothing moves while the page loads, on a phone or a desktop", async ({ page, browserName }) => {
+  test("nothing moves while the page loads, on a phone or a desktop, a Mac or not", async ({
+    browser,
+    browserName,
+  }) => {
     test.skip(browserName !== "chromium", "Only Chromium reports layout shifts.");
-    for (const viewport of [
-      { width: 360, height: 740 },
-      { width: 1280, height: 800 },
+    // The shortcut on "Change site" is written for the device, and must be before the first paint.
+    for (const [system, userAgent, keys] of [
+      ["a Mac", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)", "⌘K"],
+      ["Windows", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "Ctrl K"],
     ]) {
-      await page.setViewportSize(viewport);
-      await page.goto("/github/");
-      await page.evaluate(() => document.fonts.ready);
-      const shift = await page.evaluate(
-        () =>
-          new Promise<number>((resolve) => {
-            let total = 0;
-            new PerformanceObserver((list) => {
-              for (const entry of list.getEntries() as (PerformanceEntry & { value: number })[]) total += entry.value;
-            }).observe({ type: "layout-shift", buffered: true });
-            setTimeout(() => resolve(total), 500);
-          }),
-      );
-      expect(shift, `layout shift at ${viewport.width}px`).toBe(0);
+      for (const viewport of [
+        { width: 360, height: 740 },
+        { width: 1280, height: 800 },
+      ]) {
+        const context = await browser.newContext({ userAgent, viewport });
+        const page = await context.newPage();
+        await page.goto("/github/");
+        await page.evaluate(() => document.fonts.ready);
+        const shift = await page.evaluate(
+          () =>
+            new Promise<number>((resolve) => {
+              let total = 0;
+              new PerformanceObserver((list) => {
+                for (const entry of list.getEntries() as (PerformanceEntry & { value: number })[]) total += entry.value;
+              }).observe({ type: "layout-shift", buffered: true });
+              setTimeout(() => resolve(total), 500);
+            }),
+        );
+        expect(shift, `layout shift at ${viewport.width}px on ${system}`).toBe(0);
+        if (viewport.width > 700) {
+          await expect(page.getByRole("link", { name: /Change site/ }).locator("kbd")).toHaveText(keys, {
+            useInnerText: true,
+          });
+        }
+        await context.close();
+      }
     }
   });
 });

@@ -212,6 +212,16 @@ kbd {
   line-height: 1;
 }
 
+/*
+ * A shortcut written both ways, ⌘ on Apple devices and Ctrl elsewhere, as data-keys says (set by the script in
+ * Base.astro). Without JavaScript there's no data-keys, and no shortcut that would work.
+ */
+:root:not([data-keys]) .keys,
+:root[data-keys="mac"] .keys-ctrl,
+:root[data-keys="ctrl"] .keys-mac {
+  display: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

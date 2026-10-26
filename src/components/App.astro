@@ -29,7 +29,10 @@ const site = platform ?? ANY;
     <a slot="action" class="change" href="#other-sites" aria-haspopup="dialog" data-sites-open>
       <Icon name="swap" size={18} />
       <span>Change site</span>
-      <kbd data-shortcut>⌘K</kbd>
+      <kbd class="keys">
+        <span class="keys-mac">⌘K</span>
+        <span class="keys-ctrl">Ctrl K</span>
+      </kbd>
     </a>
   </Banner>
   <Generator id={site.id} site={site.name} rules={site.rules} anySite={!platform}>

@@ -44,7 +44,7 @@ const app = {
     <meta name="description" content={description} />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     <meta name="theme-color" content="#faf5ec" />
-    {/* The theme before the first paint, so a dark page never flashes light. src/scripts/theme.ts explains; its hash is in public/_headers. */}
+    {/* Before the first paint: the theme, so a dark page never flashes light (src/scripts/theme.ts explains), and ⌘ or Ctrl for the shortcuts, so their labels never change width. Its hash is in public/_headers. */}
     <script is:inline>
       (() => {
         let choice = null;
@@ -56,6 +56,7 @@ const app = {
         const dark = choice ? choice === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
         document.documentElement.dataset.theme = dark ? "dark" : "light";
         document.querySelector('meta[name="theme-color"]').content = dark ? "#15130f" : "#faf5ec";
+        document.documentElement.dataset.keys = /Mac|iPhone|iPad/.test(navigator.userAgent) ? "mac" : "ctrl";
       })();
     </script>
     <meta property="og:type" content="website" />

@@ -105,7 +105,12 @@ const lockedHint = initial.locked.length > 0 || initial.unavailable.length > 0;
     <p class="copy-failed" data-copy-failed hidden>
       <Icon name="alert" size={18} />
       <span>
-        Your browser blocked copying. Select the password and press <kbd data-copy-keys>⌘C</kbd>.
+        Your browser blocked copying. Select the password and press{" "}
+        <kbd class="keys">
+          <span class="keys-mac">⌘C</span>
+          <span class="keys-ctrl">Ctrl C</span>
+        </kbd>
+        .
       </span>
     </p>
     <p class="sr-only" role="status" data-status></p>

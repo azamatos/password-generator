@@ -52,8 +52,6 @@ function marked(value: string): (string | HTMLSpanElement)[] {
     });
 }
 
-const apple = /Mac|iPhone|iPad/.test(navigator.userAgent);
-
 mount("[data-generator]", (root) => {
   const rules: PasswordRules = JSON.parse(root.dataset.rules!);
   const site = root.dataset.site!;
@@ -83,7 +81,6 @@ mount("[data-generator]", (root) => {
     passphrase: find(root, '[data-panel="passphrase"]'),
   };
   const panelNote = find(root, "[data-panel-note]");
-  find(root, "[data-copy-keys]").textContent = apple ? "⌘C" : "Ctrl C";
 
   // Password controls
   const length = bindRange(root, "length", {

@@ -65,7 +65,10 @@ const host = (url: string) => new URL(url).hostname.replace(/^www\./, "");
       <Button href="#other-sites" aria-haspopup="dialog" data-sites-open>
         <Icon name="search" size={19} />
         Choose a site
-        <kbd data-shortcut>⌘K</kbd>
+        <kbd class="keys">
+          <span class="keys-mac">⌘K</span>
+          <span class="keys-ctrl">Ctrl K</span>
+        </kbd>
       </Button>
     </>
   )}

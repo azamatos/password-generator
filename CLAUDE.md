@@ -8,7 +8,7 @@ pass.azamatos.com is a static site that generates passwords which pass a chosen 
 
 It is deployed on Cloudflare Pages as the static `dist/` folder. Pages injects Cloudflare Web Analytics at build time, and `public/_redirects` sends old URLs (the old vault and per-platform health pages, and the dropped Reddit page) to current ones with 301s.
 
-`public/_headers` sets a strict CSP: scripts come only from this site and Cloudflare's beacon, and pages may connect only to this site, Have I Been Pwned and Cloudflare's analytics. Astro is set never to inline scripts, and `src/integrations/csp-check.ts` fails the build when a page has an inline script whose hash isn't in `script-src`. The one hashed script is the theme script in `Base.astro`: when you change it, the build prints the new hash for `_headers`. A new external host needs a CSP change first.
+`public/_headers` sets a strict CSP: scripts come only from this site and Cloudflare's beacon, and pages may connect only to this site, Have I Been Pwned and Cloudflare's analytics. Astro is set never to inline scripts, and `src/integrations/csp-check.ts` fails the build when a page has an inline script whose hash isn't in `script-src`. The one hashed script is in `Base.astro`: it sets the theme and `data-keys` (⌘ or Ctrl, for the shortcuts CSS shows) before the first paint. When you change it, the build prints the new hash for `_headers`. A new external host needs a CSP change first.
 
 The design is "Pass Warm" from the Claude Design project "Password generator" (https://claude.ai/design/p/019dfc24-6122-76b0-8e2e-43122101cdb7, file `Pass Warm.html`, built from `docs/design-brief.md`): a warm cream, each site's own colour on its banner and controls, Geist and Space Mono, and a warm dark theme.
 

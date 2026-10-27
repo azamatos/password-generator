@@ -5,22 +5,23 @@ import Footer from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
 import { ANY } from "@/data/platforms";
 import { brandStyle } from "@/lib/color";
+import { cards } from "@/og/cards";
 import { SITE } from "@/site";
 import "@/styles/global.css";
 
 interface Props {
   title: string;
   description: string;
-  /** Path of the share image inside public/, without the leading slash. */
-  ogImage?: string;
+  /** The page's share image: a key of cards in src/og/cards.ts. */
+  share?: string;
   noindex?: boolean;
   /** The site's colour for the banner and the controls; coral for Any site and the other pages. */
   brand?: string;
 }
 
-const { title, description, ogImage = "og/main.png", noindex = false, brand = ANY.color } = Astro.props;
+const { title, description, share = "main", noindex = false, brand = ANY.color } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const ogImageUrl = new URL(ogImage, Astro.site).href;
+const shareImage = new URL(`og/${share}.png`, Astro.site).href;
 
 const app = {
   "@context": "https://schema.org",
@@ -64,16 +65,18 @@ const app = {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image" content={shareImage} />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={title} />
+    <meta property="og:image:alt" content={cards[share].alt} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={shareImage} />
 
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-96x96.png" type="image/png" sizes="96x96" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
     <Font cssVariable="--font-sans" preload />

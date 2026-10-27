@@ -81,7 +81,7 @@ The server render and the script both start from `DEFAULT_PASSWORD_OPTIONS` / `D
 - **`random.ts` `randomInt`** uses `crypto.getRandomValues` with rejection sampling, so there is no modulo bias. Never use `Math.random`.
 - **`passphrase.ts` `planPassphrase`** can return `unsupported` with a reason, e.g. when a 20-character limit is too short for 4 words. The EFF wordlist (`lib/wordlist/`) is a `?raw` dynamic import, loaded the first time Passphrase is chosen.
 - **Strength:** `lib/strength.ts` turns exact bits (`meterForBits`) or zxcvbn's 0–4 score (`meterForScore`) into the meter's label, bars and tone. The generator, `/health` and the share images all use it.
-- **Describing rules:** `lib/describe.ts` has every way rules become text: the one-line summary in the switcher and the list of sites, the banner's tags, the notes under the character tiles, share-image tags and `monthYear` for "Checked Oct 2026".
+- **Describing rules:** `lib/describe.ts` has every way rules become text: the one-line summary in the switcher and the list of sites, the banner's tags (also on the share images), the notes under the character tiles and `monthYear` for "Checked Oct 2026".
 - **"Any site"** is `ANY` in `data/platforms.ts` (id, name, color, and `ANY_SITE` from `lib/password.ts` as its rules). `App.astro` treats it like any other site, and the generator gets an `anySite` flag.
 
 **`/health`** (`src/pages/health.astro`, behavior in `src/scripts/health.ts`):
@@ -89,10 +89,13 @@ The server render and the script both start from `DEFAULT_PASSWORD_OPTIONS` / `D
 - zxcvbn-ts runs in a Web Worker (`src/scripts/zxcvbn.worker.ts`, about 1.7 MB) that is created on the first input.
 - The leak check uses the Have I Been Pwned range API with k-anonymity and padding (`lib/hibp.ts`): only the first 5 hex characters of the SHA-1 hash are sent.
 
-**Share images.** `src/pages/og/[slug].png.ts` renders one 1200×630 PNG per page at build time with satori and resvg, from `src/og/cards.ts`, using the same platform data, so images can't go stale.
+**Share images.** `src/pages/og/[slug].png.ts` renders one 1200×630 PNG per page at build time with satori and resvg, from `src/og/cards.ts`, using the same platform data, so images can't go stale. Each page names its card with `share` on `Base.astro`, which also takes the image's `og:image:alt` from it.
 
-- satori needs TTF or WOFF (not WOFF2), which is why `src/og/fonts/` duplicates the site fonts.
-- The colours and fonts in `src/og/render.ts` are copied from `src/styles/global.css` and the site's fonts. Change both together.
+- The layout is the share image from Claude Design, kept as `docs/og-source.html`: the pitch on the left, and on the right the page's banner in the site's colour with a sample password.
+- satori needs TTF or WOFF (not WOFF2), which is why `src/og/fonts/` duplicates the site fonts. It has no CSS filters, so the faint logo behind a banner is made by recolouring the SVG (`silhouette`).
+- The colours in `src/og/render.ts` are the site's light theme, a few tuned for a picture. Change them with `src/styles/global.css`.
+
+**Icons.** The favicons, Apple touch icon, web-app icons and `site.webmanifest` in `public/` come from Claude Design as files; replace them as a set.
 
 **Styling.** Design tokens are CSS custom properties in `src/styles/global.css`, light first on a warm cream. `<html data-theme>` always holds the theme in use: the inline script in `Base.astro` sets it before the first paint, and `scripts/theme.ts` keeps it after client-router swaps, when the system's setting changes and when the System / Light / Dark switch is used (the choice is kept in `localStorage`). Without JavaScript there's no attribute and the system's setting decides, which is why the dark tokens appear twice. Fonts are Latin subsets of Geist (400, 500, 600) and Space Mono (400, 700), local WOFF2 loaded through Astro's fonts API (`astro.config.mjs`) as `--font-sans` and `--font-mono`. The import alias `@/` maps to `src/`.
 

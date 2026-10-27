@@ -73,24 +73,3 @@ export function monthYear(checked: string): string {
   const [year, month] = checked.split("-");
   return `${MONTHS[Number(month) - 1]} ${year}`;
 }
-
-/** The share image's tags, three at most: length, then what's required, in words. */
-export function shareTags(rules: PasswordRules): string[] {
-  const length =
-    rules.maxLength === null ? `${rules.minLength}+ characters` : `${rules.minLength}–${rules.maxLength} characters`;
-  if (rules.minClasses) return [length, `${rules.minClasses.count} of 4 types`];
-  const WORDS: Record<string, [long: string, short: string]> = {
-    upper: ["Uppercase", "upper"],
-    lower: ["Lowercase", "lower"],
-    digit: ["Number", "number"],
-    symbol: ["Symbol", "symbol"],
-    "lower,upper": ["Letter", "letter"],
-    "digit,symbol": ["Number or symbol", "number or symbol"],
-  };
-  const groups = rules.required.map((g) => WORDS[g.join(",")] ?? [g.join(" or "), g.join(" or ")]);
-  if (groups.length === 0) return [length, "Any characters"];
-  if (groups.length <= 2) return [length, ...groups.map(([long]) => long)];
-  // Three or more fit one tag: "Upper, lower, number".
-  const combined = groups.map(([, short]) => short).join(", ");
-  return [length, combined.charAt(0).toUpperCase() + combined.slice(1)];
-}

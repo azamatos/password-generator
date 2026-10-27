@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { platforms } from "@/data/platforms";
-import { bannerTags, classNote, monthYear, ruleTags, shareTags, shortSummary } from "./describe";
+import { bannerTags, classNote, monthYear, ruleTags, shortSummary } from "./describe";
 
 const byId = Object.fromEntries(platforms.map((p) => [p.id, p]));
 
@@ -55,14 +55,5 @@ describe("monthYear", () => {
   it("names the month", () => {
     expect(monthYear("2026-10")).toBe("Oct 2026");
     expect(monthYear("2027-01")).toBe("Jan 2027");
-  });
-});
-
-describe("shareTags", () => {
-  it("fits the rules in three tags at most", () => {
-    expect(shareTags(byId.paypal.rules)).toEqual(["8–20 characters", "Letter", "Number or symbol"]);
-    expect(shareTags(byId.apple.rules)).toEqual(["8–63 characters", "Lower, upper, number"]);
-    expect(shareTags(byId.microsoft.rules)).toEqual(["8–127 characters", "2 of 4 types"]);
-    expect(shareTags(byId.instagram.rules)).toEqual(["6+ characters", "Any characters"]);
   });
 });
